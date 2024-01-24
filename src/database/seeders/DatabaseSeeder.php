@@ -5,6 +5,7 @@ namespace Database\Seeders;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Database\Seeders\UserSeeder;
+use Database\Seeders\EntitySeeder;
 use Database\Seeders\ProgramSeeder;
 use Database\Seeders\DonorCategorySeeder;
 use Database\Seeders\accountPaymentSeeder;
@@ -24,7 +25,9 @@ class DatabaseSeeder extends Seeder
             ProgramSeeder::class,
             FundTypeSeeder::class,
             PaymentMethodSeeder::class,
-            accountPaymentSeeder::class
+            accountPaymentSeeder::class,
+            DivisionSeeder::class,
+            EntitySeeder::class
 
         ]);
         // \App\Models\User::factory(10)->create();

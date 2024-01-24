@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -17,7 +18,7 @@ class Donor extends Model
     use HasFactory, HasUlids, SoftDeletes;
 
     protected $fillable = [
-        'id','kode_donatur', 'kode_donatur_lama', 'donor_name',  'sapaan', 'email', 'email2',
+        'id', 'kode_donatur', 'kode_donatur_lama', 'donor_name',  'sapaan', 'email', 'email2',
         'mobile', 'mobile2', 'npwp', 'gender', 'suf', 'tempat_lahir', 'temp_nama_asli_donatur',
         'birthday', 'alamat', 'alamat2', 'kota_kabupaten', 'provinsi_address', 'kode_pos',
         'wilayah_address', 'home_phone', 'pekerjaan', 'pekerjaan_detail', 'alamat_kantor',
@@ -34,7 +35,8 @@ class Donor extends Model
         ];
     }
 
-    public function getRouteKeyName(){
+    public function getRouteKeyName()
+    {
         return 'ulid';
     }
 
@@ -64,17 +66,17 @@ class Donor extends Model
     protected function kodeDonatur(): Attribute
     {
         return Attribute::make(
-            get: fn($value) => 'DON-' . $value
+            get: fn ($value) => 'DON-' . $value
         );
     }
-    
+
 
     public function programs(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
         return $this->belongsToMany(\App\Models\Program::class, 'donor_program', 'donor_id', 'program_id')->withPivot(['total_donasi_program', 'id']);
     }
-   
-    
+
+
 
     public function transactions(): HasMany
     {
@@ -92,7 +94,7 @@ class Donor extends Model
         $mobile = preg_replace('/[^0-9]/', '', $value);
         $this->attributes['mobile2'] = $mobile;
     }
-    
+
     public function setHomePhoneAttribute($value)
     {
         $mobile = preg_replace('/[^0-9]/', '', $value);
@@ -106,7 +108,8 @@ class Donor extends Model
     }
 
 
-    public static function ListSumberInformasi(){
+    public static function ListSumberInformasi()
+    {
         return [
             [
                 'id' => 1,
