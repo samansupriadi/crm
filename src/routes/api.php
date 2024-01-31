@@ -5,7 +5,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DonorController;
-// use App\Http\Resources\ProgramCategoryResource;
 use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\fundTypeController;
 use App\Http\Controllers\TransactionController;
@@ -24,6 +23,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //public resource
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
+
 
 //private resource
 route::group(['middleware' => ['auth:sanctum']], function () {
@@ -137,5 +137,12 @@ route::group(['middleware' => ['auth:sanctum']], function () {
 
     Route::prefix('lists')->group(function () {
         Route::get('/transactions/link/{transaction}', [TransactionController::class, 'listLink']);
+    });
+
+
+    Route::prefix('options')->name('options.')->group(function () {
+        Route::get('/entitas', [EntityController::class, 'options']);
+        Route::get('/programkategori', [ProgramCategoryController::class, 'options']);
+        Route::get('/programs', [ProgramController::class, 'options']);
     });
 });

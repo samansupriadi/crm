@@ -23,27 +23,28 @@ class StoreProgramRequest extends FormRequest
     {
         return [
             'name'                  => 'required|unique:programs,program_name|max:255',
-            'publish_web'           => 'required|in:0,1',
+            // 'publish_web'           => 'required|in:0,1',
             'name_public'           => 'required_if:publish_web,1',
             'kategori'              => 'required|exists:program_categories,ulid',
             'thumbnail'             => 'image|mimes:jpg,png,jpeg,gif|max:2048|nullable',
-            'tipe_kampanye'         => 'required|in:1,2,3,4,5',
+            // 'tipe_kampanye'         => 'required|in:1,2,3,4,5',
             'target_nominal'        => 'required_if:tipe_kampanye,5|required_if:tipe_kampanye,4',
             'from_date'             => 'required_if:tipe_kampanye,2|required_if:tipe_kampanye,3|required_if:tipe_kampanye,4',
             'to_date'               => 'required_if:tipe_kampanye,2|required_if:tipe_kampanye,3|required_if:tipe_kampanye,4',
-            'publish_web'           => 'required|in:0,1', 
+            // 'publish_web'           => 'required|in:0,1',
             'is_tabungan'           => 'required|in:0,1',
             'harga'                 => 'required_if:is_tabungan,1',
         ];
     }
 
-    public function attributes(){
+    public function attributes()
+    {
         return [
             'name'          => 'Nama Program',
             'thumbnail'     => 'Gambar program',
             'tipe_kampanye' => 'Kampanye Tipe',
             //'campign_name' => 'Nama Kampanye',
-            'target_nominal'=> 'Target Nominal Pencapaian (Rupiah)',
+            'target_nominal' => 'Target Nominal Pencapaian (Rupiah)',
             'from_date'     => 'awal tanggal kampanye',
             'to_date'       => 'akhir tanggal kampanye',
             'publish_web'   => 'Publish Ke web',
@@ -53,7 +54,8 @@ class StoreProgramRequest extends FormRequest
     }
 
 
-    public function messages(){
+    public function messages()
+    {
         return [
             'kategori' => [
                 'required' => 'Kategori Program Wajib Di isi',

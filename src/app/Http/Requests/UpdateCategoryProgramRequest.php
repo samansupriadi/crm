@@ -23,7 +23,7 @@ class UpdateCategoryProgramRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|max:100|' . Rule::unique('program_categories','category_name')->ignore($this->category),
+            'name' => 'required|max:100|' . Rule::unique('program_categories', 'category_name')->ignore($this->category),
             'tipe' => 'required|in:FIX,DYNAMIC',
             'pengelola' => 'required|numeric'
         ];

@@ -22,7 +22,8 @@ class ProgramCategory extends Model
         'created_by',
         'deleted_by',
         'updated_by',
-        'last_refresh_total'
+        'last_refresh_total',
+
 
     ];
 
@@ -33,7 +34,8 @@ class ProgramCategory extends Model
         ];
     }
 
-    public function getRouteKeyName(){
+    public function getRouteKeyName()
+    {
         return 'ulid';
     }
 
