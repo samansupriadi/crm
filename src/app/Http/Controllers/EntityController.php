@@ -92,4 +92,14 @@ class EntityController extends Controller
         $id->delete();
         return response()->noContent();
     }
+
+    public function options()
+    {
+        return Entity::get()->map(function ($value) {
+            return [
+                'id'    => $value->ulid,
+                'name'  => $value->name
+            ];
+        });
+    }
 }

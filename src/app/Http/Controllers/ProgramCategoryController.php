@@ -13,10 +13,23 @@ use App\Http\Resources\ProgramCategoryResource;
 class ProgramCategoryController extends Controller
 {
     use HttpResponses;
-    
-    public function index()
+
+    public function index(Request $request)
     {
-        return ProgramCategoryResource::collection(ProgramCategory::with('programs')->paginate(10));
+        $validated = $request->validate([
+            'name' => [
+                'exists:program_categories,category_name'
+            ]
+        ]);
+
+        $per_page = (int)($request->get('per_page') ?? 10);
+        $name = !empty($request->name) ?  $request->name : false;
+        $data = ProgramCategory::query();
+
+        if ($name) {
+            $data->where('category_name', 'LIKE', '%' . $name . '%');
+        }
+        return ProgramCategoryResource::collection($data->with('programs')->paginate($per_page));
     }
 
     public function store(\App\Http\Requests\StoreProgramCategoryRequest $request)
@@ -25,9 +38,9 @@ class ProgramCategoryController extends Controller
 
         try {
             $category = ProgramCategory::create([
-                'category_name'     => $request->name,
-                'type'              => $request->tipe,
-                'bagian_pengelola'  => $request->pengelola,
+                'category_name'     => $request->input('name'),
+                'type'              => $request->input('tipe'),
+                'bagian_pengelola'  => $request->input('pengelola'),
                 'created_by'        => Auth::user()->id
             ]);
 
@@ -70,18 +83,21 @@ class ProgramCategoryController extends Controller
 
     public function destroy(ProgramCategory $category)
     {
-        
+
         $category->update(['deleted_by' => Auth::user()->id]);
         $category->delete();
         return response()->noContent();
     }
 
+    /* 
+    function for refresh total nominal untuk kategori program
+    */
     public function refresh(ProgramCategory $category)
     {
         $id     = $category->programs->pluck('id');
         $total  = DB::table('transaction_details')
-                    ->whereIn('id', $id)
-                    ->sum('nominal');
+            ->whereIn('program_id', $id)
+            ->sum('nominal');
 
         DB::beginTransaction();
         try {
@@ -89,11 +105,22 @@ class ProgramCategoryController extends Controller
             $category->update([
                 'total_penghimpunan'    => $total
             ]);
-            return $this->success('', 'Refresh Success' , 200);
+            return $this->success($total, 'Refresh Success', 200);
         } catch (\Throwable $th) {
             DB::rollback();
             Log::debug($th->getMessage());
-            return $this->error('', 'Update Nominal Failed' , 500);
+            return $this->error('', 'Update Nominal Failed', 500);
         }
+    }
+
+
+    public function options()
+    {
+        return ProgramCategory::get()->map(function ($value) {
+            return [
+                'id'    => $value->ulid,
+                'name'  => $value->category_name
+            ];
+        });
     }
 }
