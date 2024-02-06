@@ -110,14 +110,17 @@ route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/paymentmethod/{paymentmethod}', [PaymentMethodController::class, 'show']);
         Route::put('/paymentmethod/{paymentmethod}', [PaymentMethodController::class, 'update']);
         Route::delete('/paymentmethod/{paymentmethod}', [PaymentMethodController::class, 'destroy']);
+        Route::post('/paymentmethod/refresh/{paymentmethod}', [PaymentMethodController::class, 'refresh']);
+        Route::post('/paymentmethod/add', [PaymentMethodController::class, 'addMember']);
+        Route::put('/paymentmethod/edit/{paymentmethod}', [PaymentMethodController::class, 'editMember']);
+
 
         //akun pembayaran
         Route::get('/akuns', [accountPaymentController::class, 'index']);
+        Route::put('/akuns/refresh/{akun}', [accountPaymentController::class, 'refresh']);
         Route::post('/akuns', [accountPaymentController::class, 'store']);
-        Route::post('/akuns/add', [accountPaymentController::class, 'addMember']);
-        Route::delete('/akuns/delete/{id}', [accountPaymentController::class, 'deleteMember']);
+        Route::put('/akuns/{akun}', [accountPaymentController::class, 'update']);;
         Route::get('/akuns/{id}', [accountPaymentController::class, 'show']);
-        Route::put('/akuns/{id}', [accountPaymentController::class, 'update']);
         Route::delete('/akuns/{id}', [accountPaymentController::class, 'destroy']);
 
         //transactions
@@ -144,5 +147,7 @@ route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/entitas', [EntityController::class, 'options']);
         Route::get('/programkategori', [ProgramCategoryController::class, 'options']);
         Route::get('/programs', [ProgramController::class, 'options']);
+        Route::get('/paymentmetod', [PaymentMethodController::class, 'options']);
+        Route::get('/akuns', [accountPaymentController::class, 'options']);
     });
 });
