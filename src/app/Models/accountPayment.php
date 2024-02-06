@@ -13,7 +13,7 @@ class accountPayment extends Model
     use HasFactory, SoftDeletes, HasUlids;
 
     protected $fillable = [
-        'account_payment_name', 'saldo_akun'
+        'account_payment_name', 'saldo_akun', 'jumlah_transaksi', 'jumlah_saldo'
     ];
 
     protected $hidden = ['id', 'created_at', 'updated_at', 'deleted_at'];
@@ -26,8 +26,8 @@ class accountPayment extends Model
         ];
     }
 
-    public function getRouteKeyName(){
+    public function getRouteKeyName()
+    {
         return 'ulid';
     }
-
 }

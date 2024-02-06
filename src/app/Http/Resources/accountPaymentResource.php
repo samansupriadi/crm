@@ -18,6 +18,7 @@ class accountPaymentResource extends JsonResource
             'id'                => $this->ulid,
             'akun_pembayaran'   => $this->account_payment_name,
             'saldo'             => $this->saldo_akun,
+            'jumlah_transaksi'             => $this->jumlah_transaksi,
         ];
     }
 }
