@@ -14,7 +14,7 @@ class DonorResource extends JsonResource
 
         if ($this->relationLoaded('detail') && !empty($this->detail)) {
             $detail = [
-                    'detail'    => [
+                'detail'    => [
                     'id'                => $this->detail->ulid,
                     'sumber_informasi'  => $this->detail->sumber_informasi,
                     'totaldonasi'       => $this->detail->totaldonasi,
@@ -28,12 +28,12 @@ class DonorResource extends JsonResource
                 return [
                     'id'            => $program->pivot->id,
                     'program_name'  => $program->program_name,
-                    'program_id'    => $program->pivot->program_id,
+                    // 'program_id'    => $program->pivot->program_id,
                     'total_donasi'  => $program->pivot->total_donasi_program,
                 ];
             });
         }
-        
+
 
         if ($this->relationLoaded('asignTo') && !empty($this->asignTo)) {
             $pj = [
@@ -76,7 +76,7 @@ class DonorResource extends JsonResource
             'homephone'                     => $this->home_phone,
             'telpkantor'                    => $this->telp_kantor,
             'npwp'                          => $this->npwp,
-            'gender'                        => $this->gender == 'L' ? 'Laki-Laki' : ($this->gender == 'P' ? 'Perempuan' : 'Tidak Diketahui'), 
+            'gender'                        => $this->gender == 'L' ? 'Laki-Laki' : ($this->gender == 'P' ? 'Perempuan' : 'Tidak Diketahui'),
             'tempat_lahir'                  => $this->tempat_lahir,
             'birthday'                      => $this->birthday,
             'alamat'                        => $this->alamat,
@@ -99,6 +99,6 @@ class DonorResource extends JsonResource
             'registerd_at'                  => $this->registerd_at,
             'total_program_participated'    => $total_program,
             'detail_program'                => $programs,
-        ],  $detail ,$pj, $update, $created);
+        ],  $detail, $pj, $update, $created);
     }
 }

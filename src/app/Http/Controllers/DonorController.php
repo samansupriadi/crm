@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use DateTime;
+use Carbon\Carbon;
+use App\Models\User;
 use App\Models\Donor;
+use App\Models\Program;
 use Illuminate\Http\Request;
 use App\Traits\HttpResponses;
 use Symfony\Component\Uid\Ulid;
@@ -11,8 +14,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\DonorResource;
-use App\Jobs\updateProgramDonaturJob;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\StoreDonorRequest;
 use App\Http\Requests\UpdateDonorRequest;
@@ -21,19 +22,62 @@ use Spatie\SimpleExcel\SimpleExcelReader;
 class DonorController extends Controller
 {
     use HttpResponses;
-    
-    public function index()
+
+    public function index(Request $request)
     {
-        return DonorResource::collection(Donor::with('detail', 'asignTo', 'updatedBy', 'createdBy', 'programs')->paginate(10));
+        $validated = $request->validate([
+            'program'           => ['exists:programs,ulid'],
+            'penanggung_jawab'  => ['exists:users,ulid'],
+            'status'            => ['in:active,inactive']
+        ]);
+        $per_page = (int)($request->get('per_page') ?? 10);
+        $name = !empty($request->name) ?  $request->name : false;
+        $program = !empty($request->program) ?  $request->program : false;
+        $pj = !empty($request->penanggung_jawab) ?  $request->penanggung_jawab : false;
+        $status = !empty($request->status) ?  $request->status : false;
+        $data = Donor::query();
+
+        if ($program) {
+            $id = Program::where('ulid', $program)->first();
+            $data->withWhereHas('programs', function ($query) use ($id) {
+                $query->where('program_id', $id->id);
+            });
+        }
+
+        if ($pj) {
+            $id_pj = User::where('ulid', $pj)->first();
+            $data->where('asign_to', $id_pj->id);
+        }
+
+        if ($status) {
+            $data->where('status', $status);
+        }
+
+        if ($name) {
+            $data->where('kode_donatur', 'LIKE', '%' . $name . '%')
+                ->orWhere('donor_name', 'LIKE', '%' . $name . '%')
+                ->orWhere('email', 'LIKE', '%' . $name . '%')
+                ->orWhere('email2', 'LIKE', '%' . $name . '%')
+                ->orWhere('mobile', 'LIKE', '%' . $name . '%')
+                ->orWhere('npwp', 'LIKE', '%' . $name . '%')
+                ->orWhere('mobile2', 'LIKE', '%' . $name . '%')
+                ->orWhere('home_phone', 'LIKE', '%' . $name . '%');
+        }
+
+        return DonorResource::collection($data->with('detail', 'asignTo', 'updatedBy', 'createdBy', 'programs')->paginate($per_page));
+    }
+
+    public function export(Request $request)
+    {
     }
 
     public function store(StoreDonorRequest $request)
     {
         $datas = $request->validated();
         $kode_donatur = Donor::withTrashed()->max('kode_donatur') + 1;
-        
+
         DB::beginTransaction();
-        
+
         try {
             $donor = Donor::create(array_merge($datas, [
                 'kode_donatur'  => $kode_donatur,
@@ -46,9 +90,9 @@ class DonorController extends Controller
             DB::rollBack();
             Log::debug($th->getMessage());
             return $this->error('', 'Failed To Save New Data', 500);
-        }        
+        }
     }
-  
+
     public function update(UpdateDonorRequest $request, Donor $donor)
     {
         DB::beginTransaction();
@@ -84,7 +128,7 @@ class DonorController extends Controller
                 "pendidikan_detail" => $request->pendidikan_detail,
                 "paket_9in1"        => $request->paket_9in1,
                 'updated_by'        => Auth::user()->id
-                
+
             ]);
             DB::commit();
             return new DonorResource($donor);
@@ -95,7 +139,7 @@ class DonorController extends Controller
         }
     }
 
-   
+
     public function destroy(Donor $donor)
     {
         $donor->delete();
@@ -110,11 +154,11 @@ class DonorController extends Controller
             $this->validate($request, [
                 'csv_file'  => 'required|mimes:csv,txt'
             ]);
-            
+
             $file = $request->file('csv_file');
             $filePath = $file->store('temp', 'local');
             $fullPath = storage_path('app/' . $filePath);
-            
+
             $rows = SimpleExcelReader::create($fullPath)->getRows()->toArray();
             foreach (array_chunk($rows, 1000) as $chunk) {
                 foreach ($chunk as $row) {
@@ -156,7 +200,7 @@ class DonorController extends Controller
                             'asign_to'                    => $row['asign_to']
 
                         ]);
-                        
+
                         DB::table('donor_information_details')->insert([
                             'donor_id'                    => $row['contactid'],
                             'ulid'                        => Ulid::generate(),
@@ -178,35 +222,118 @@ class DonorController extends Controller
         }
     }
 
+    //update donatur pernah berdonasi pada program apa saja termasuk total dan retensi nya
     public function updateProgram()
     {
-       try {
-        $results = DB::table('transaction_details')
-                ->join('transactions', 'transaction_details.transaction_id', '=', 'transactions.id')
-                ->select('transactions.donor_id', 'transaction_details.program_id', DB::raw('SUM(transaction_details.nominal) AS total'))
-                ->groupBy('transactions.donor_id', 'transaction_details.program_id')
-                ->orderBy('transactions.donor_id')
-                ->chunk(5000, function ($results) {
-                    $data = $results->map(function ($item) {
-                        return [
-                            'donor_id'              => $item->donor_id,
-                            'program_id'            => $item->program_id,
-                            'total_donasi_program'  => $item->total
-                        ];
-                    });
-                    DB::table('donor_program')->insert($data->toArray());
-                });
+        try {
+            // Hapus data yang sudah ada sebelumnya diluar transaksi
+            DB::statement("TRUNCATE TABLE donor_program");
+
+            DB::beginTransaction();
+            // Update total_donasi_program pada donor_program
+            DB::statement("
+                INSERT INTO donor_program (donor_id, program_id, total_donasi_program)
+                SELECT
+                    donor_id,
+                    program_id,
+                    COALESCE(SUM(nominal), 0) AS total_donasi_program
+                FROM
+                    transaction_details
+                    JOIN transactions ON transaction_details.transaction_id = transactions.id
+                GROUP BY
+                    donor_id,
+                    program_id
+                ON DUPLICATE KEY UPDATE
+                    total_donasi_program = total_donasi_program + VALUES(total_donasi_program)
+            ");
+
             DB::commit();
             return $this->success('', 'Update Data Success', 201);
-       } catch (\Throwable $th) {
+        } catch (\Throwable $th) {
             DB::rollBack();
             Log::debug($th->getMessage());
             return $this->error('', "Update data donatur program failed", 500);
-       }
+        }
     }
+
+
 
     public function sumberInfo(Request $request)
     {
-       return Donor::ListSumberInformasi();
+        return Donor::ListSumberInformasi();
+    }
+
+
+    //refresh status donatur berdasarakan terkahir kali transakasi
+    public function refresh()
+    {
+        DB::beginTransaction();
+        try {
+            $chunkSize = 10000;
+            DB::table('transactions')
+                ->whereIn('id', function ($query) {
+                    $query->select(DB::raw('MAX(id)'))
+                        ->from('transactions')
+                        ->groupBy('donor_id');
+                })
+                ->select('donor_id', 'kode_transaksi', 'tanggal_kuitansi')
+                ->orderBy('donor_id')
+                ->chunk($chunkSize, function ($transactions) {
+                    foreach ($transactions as $transaction) {
+                        $status = '';
+                        $transactionDate = Carbon::parse($transaction->tanggal_kuitansi);
+                        $now = Carbon::now();
+
+                        // Menghitung perbedaan dalam tahun
+                        $diffYears = $now->diffInYears($transactionDate);
+
+                        // Menentukan status berdasarkan perbedaan tahun
+                        if ($diffYears < 3) {
+                            $status = 'AKTIF';
+                        } elseif ($diffYears >= 3 && $diffYears < 5) {
+                            $status = 'RECOVERY';
+                        } else {
+                            $status = 'MATI';
+                        }
+
+                        // Memperbarui record donors dengan status baru
+                        DB::table('donors')
+                            ->where('id', $transaction->donor_id)
+                            ->update([
+                                'last_transaction' => $transaction->tanggal_kuitansi,
+                                'status_donatur' => $status
+                            ]);
+                    }
+                });
+
+            DB::commit();
+            return $this->success('', 'Update Data Success', 201);
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            Log::debug($th->getMessage());
+            return $this->error('', "Update data donatur failed", 500);
+        }
+    }
+
+
+
+    public function show(Request $request,  Donor $donor)
+    {
+        $validated = $request->validate([
+            'program'           => ['exists:programs,ulid']
+        ]);
+
+
+        $program = !empty($request->program) ?  $request->program : false;
+        if ($program) {
+            $id = Program::where('ulid', $program)->value('id');
+            $donor->loadMissing(['programs' => function ($query) use ($id) {
+                $query->where('program_id', $id);
+            }]);
+        }
+
+        return new DonorResource($donor->loadMissing(
+            ['detail', 'asignTo', 'updatedBy', 'createdBy', 'programs']
+        ));
     }
 }
