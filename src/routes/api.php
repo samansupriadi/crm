@@ -5,14 +5,15 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DonorController;
+use App\Http\Controllers\EntityController;
 use App\Http\Controllers\ProgramController;
+use App\Http\Controllers\DivisionController;
 use App\Http\Controllers\fundTypeController;
+use App\Http\Controllers\DonorStatusController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\DonorCategoryController;
 use App\Http\Controllers\PaymentMethodController;
 use App\Http\Controllers\accountPaymentController;
-use App\Http\Controllers\DivisionController;
-use App\Http\Controllers\EntityController;
 use App\Http\Controllers\ProgramCategoryController;
 use App\Http\Controllers\TransactionDetailController;
 
@@ -61,6 +62,14 @@ route::group(['middleware' => ['auth:sanctum']], function () {
         Route::put('/categories/{category}', [DonorCategoryController::class, 'update']);
         Route::delete('/categories/{category}', [DonorCategoryController::class, 'destroy']);
 
+
+        //status doanatur
+        Route::get('/status', [DonorStatusController::class, 'index']);
+        Route::post('/status', [DonorStatusController::class, 'store']);
+        Route::put('/status/{id}', [DonorStatusController::class, 'update']);
+        Route::delete('/status/{id}', [DonorStatusController::class, 'delete']);
+
+
         //resoures donatur
         Route::get('/donors', [DonorController::class, 'index']);
         Route::post('/donors', [DonorController::class, 'store']);
@@ -70,6 +79,7 @@ route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/donors/{donor}', [DonorController::class, 'show']);
         Route::put('/donors/{donor}', [DonorController::class, 'update']);
         Route::delete('/donors/{donor}', [DonorController::class, 'destroy']);
+        Route::post('/refresh', [DonorController::class, 'refresh']);
     });
 
     //resources program
@@ -149,5 +159,6 @@ route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/programs', [ProgramController::class, 'options']);
         Route::get('/paymentmetod', [PaymentMethodController::class, 'options']);
         Route::get('/akuns', [accountPaymentController::class, 'options']);
+        Route::get('/users', [UserController::class, 'options']);
     });
 });

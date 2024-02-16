@@ -23,7 +23,7 @@ class Donor extends Model
         'birthday', 'alamat', 'alamat2', 'kota_kabupaten', 'provinsi_address', 'kode_pos',
         'wilayah_address', 'home_phone', 'pekerjaan', 'pekerjaan_detail', 'alamat_kantor',
         'kota_kantor',  'kode_post_kantor', 'wilayah_kantor', 'telp_kantor', 'facebook',
-        'twitter',  'pendidikan', 'pendidikan_detail', 'paket_9in1', 'registerd_at'
+        'twitter',  'pendidikan', 'pendidikan_detail', 'paket_9in1', 'registerd_at', 'last_transaction', 'status_donatur'
 
     ];
 
