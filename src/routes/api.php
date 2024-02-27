@@ -146,6 +146,8 @@ route::group(['middleware' => ['auth:sanctum']], function () {
 
         //transactions Detail
         Route::post('/transactions/detail/import', [TransactionDetailController::class, 'import']);
+        Route::put('/transactions/detail/unpaid/{id}', [TransactionDetailController::class, 'unpaid']);
+        Route::get('/transactions/detail/unlink/{id}', [TransactionDetailController::class, 'listUnlink']);
     });
 
     Route::prefix('lists')->group(function () {
