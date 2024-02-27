@@ -16,7 +16,7 @@ class TransactionDetail extends Model
 {
     use HasFactory, SoftDeletes, HasUlids;
 
-    protected $fillable = ['transaction_id', 'program_id', 'nominal', 'description', 'settled', 'linked', 'main', 'transaction_id_linked'];
+    protected $fillable = ['transaction_id', 'program_id', 'nominal', 'description', 'settled', 'linked', 'main', 'transaction_id_linked', 'bagian_pengelola'];
 
     protected $hidden = ['id', 'created_at', 'updated_at', 'deleted_at'];
 
@@ -29,7 +29,8 @@ class TransactionDetail extends Model
         ];
     }
 
-    public function getRouteKeyName(){
+    public function getRouteKeyName()
+    {
         return 'ulid';
     }
 
@@ -49,10 +50,9 @@ class TransactionDetail extends Model
         return $this->belongsTo(TransactionDetail::class, 'linked', 'id');
     }
 
-   
+
     public function savingDetails(): HasMany
     {
-        return $this->hasMany(SavingSummary::class, 'transaction_id_linked','linked');
+        return $this->hasMany(SavingSummary::class, 'transaction_id_linked', 'linked');
     }
-
 }

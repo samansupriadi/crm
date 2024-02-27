@@ -9,7 +9,7 @@ class TransactionResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $method = $payment_via = $detail_transkasi =  $reject = $donors = [];
+        $method = $payment_via = $detail_transkasi =  $reject = $donors =  $approve =  [];
 
         if ($this->relationLoaded('method') && !empty($this->method)) {
             $method = [
@@ -40,6 +40,15 @@ class TransactionResource extends JsonResource
             ];
         }
 
+        if ($this->relationLoaded('approveBy') && !empty($this->approveBy)) {
+            $approve = [
+                'approveBy' => [
+                    'id'    => $this->approveBy->ulid,
+                    'name'  => $this->approveBy->name,
+                ],
+            ];
+        }
+
         if ($this->relationLoaded('payment') && !empty($this->payment)) {
             $payment_via = [
                 'pembayaran_to' => [
@@ -59,17 +68,17 @@ class TransactionResource extends JsonResource
                                 'id'            => $savingDetail->ulid,
                                 'date'          => $savingDetail->created_at->format('Y-m-d H:i:s'),
                                 'no_transaksi'  => "TRX-" . $savingDetail->kode_transaksi,
-                                'nilai'         => number_format($savingDetail->nominal,2,',','.'),
-                                'kode_transaksi'=> $savingDetail->kode_transaksi,
+                                'nilai'         => number_format($savingDetail->nominal, 2, ',', '.'),
+                                'kode_transaksi' => $savingDetail->kode_transaksi,
                                 'keterangan'    => "Pembayaran ke - " .  $savingDetail->payment_to,
                             ];
                         });
                     }
-        
+
                     return [
                         'id'        => $detailTransaction->ulid,
                         'nominal'   => $detailTransaction->nominal,
-                        'keterangan'=> $detailTransaction->description,
+                        'keterangan' => $detailTransaction->description,
                         'program'   => [
                             'id'           => $detailTransaction->program->ulid,
                             'program_name' => $detailTransaction->program->program_name,
@@ -79,10 +88,10 @@ class TransactionResource extends JsonResource
                 }),
             ];
         }
-        
+
         return array_merge([
             'id'                    => $this->ulid,
-            'no_transaksi'          => 'TRX'. $this->kode_transaksi,
+            'no_transaksi'          => 'TRX' . $this->kode_transaksi,
             'subject'               => $this->subject,
             'tanggal_kuitanasi'     => $this->tanggal_kuitansi,
             'tanggal_approval_'     => $this->tanggal_approval,
@@ -90,6 +99,6 @@ class TransactionResource extends JsonResource
             'status_donasi'         => $this->status,
             'keterangan'            => $this->description,
             'no_kuitansi'           => $this->no_kuitansi,
-        ], $donors, $method, $payment_via, $detail_transkasi, $reject);
+        ], $donors, $method, $payment_via, $detail_transkasi, $reject, $approve);
     }
 }
