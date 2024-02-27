@@ -118,6 +118,80 @@ class TransactionDetailController extends Controller
         }
     }
 
+    public function sync(TransactionDetail $id)
+    {
+
+
+        // pastikan terlebih dahulu bahawa ini merupakan program tabungan
+        $cekProgram = Program::where(
+            ['id' => $id->program_id, 'is_savings' => '1']
+        )->first();
+
+        if (!$cekProgram) {
+            return $this->error(NULL, 'Transakasi ini Bukan Transaksi tabungan', 422);
+        }
+        // return $id;
+
+        //validasi bahwa sudah ada transaksi yang unpaid pada program bersangkutan
+        $cekTransaksiUnpaid = DB::table('transactions')
+            ->join('transaction_details', 'transactions.id', '=', 'transaction_details.transaction_id')
+            ->select('transactions.donor_id', 'transactions.kode_transaksi as kode_transaksi',  'transactions.tanggal_kuitansi', 'transactions.tanggal_approval', 'transactions.status as status_transkasi', 'transaction_details.*')
+            ->where([
+                'program_id' => $id->program_id,
+                'settled'   => '0',
+                'main'      => '0',
+                'donor_id'  => $id->transaction->donor_id
+            ])
+            ->orderBy('transactions.tanggal_kuitansi', 'asc')
+            ->get();
+
+        if ($cekTransaksiUnpaid->isEmpty()) {
+            return $this->error(NULL, 'Tidak ada transkasi yang perlu di sinkronisasikan', 422);
+        }
+
+        DB::beginTransaction();
+
+        try {
+            $linkTransaction = TransactionDetail::whereIn('ulid', $cekTransaksiUnpaid->pluck('ulid'))->update(['linked' => $id->linked]);
+
+            //delete sumary data
+            $deleteSummary = SavingSummary::where(['transaction_id_linked' => $id->linked])->forcedelete();
+            //build data
+            $buildData = $cekTransaksiUnpaid->map(function ($item, $index)  use ($id, $cekTransaksiUnpaid) {
+                $savingTotal = $cekTransaksiUnpaid->sum('nominal');
+                $id->transaction->update(['total_donasi' => $savingTotal]);
+                return [
+                    'ulid'                  => Ulid::generate(),
+                    'kode_transaksi'        => $item->kode_transaksi,
+                    'nominal'               => $item->nominal,
+                    'payment_to'            => $index + 1,
+                    'settled_date'          => NULL,
+                    'finish'                => (string) 0,
+                    'saving_total'          => $savingTotal,
+                    'desc'                  => $item->description,
+                    'transaction_id_linked' => $id->linked,
+                    'tanggal_kuitansi'      => $item->tanggal_kuitansi,
+                    'tanggal_approval'      => $item->tanggal_approval,
+                    'status_transkasi'      => $item->status_transkasi,
+                    'desc'                  => $item->description,
+                    'created_at'            => now()->format('Y-m-d H:i:s'),
+                    'updated_at'            => now()->format('Y-m-d H:i:s')
+
+                ];
+            });
+            //recrate summary data
+            $reCreateData = SavingSummary::insert($buildData->toArray());
+            DB::commit();
+            return $this->success([
+                'message'   => 'SYNC success',
+            ]);
+        } catch (\Throwable $th) {
+            DB::rollback();
+            Log::debug($th->getMessage());
+            return $this->error('', 'SYNC Failed', 500);
+        }
+    }
+
     public function listUnlink(TransactionDetail $id)
     {
         return $id->transaction;
