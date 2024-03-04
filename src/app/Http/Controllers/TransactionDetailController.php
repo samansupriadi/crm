@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Program;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
 use App\Models\SavingSummary;
 use App\Traits\HttpResponses;
@@ -10,6 +11,7 @@ use Symfony\Component\Uid\Ulid;
 use App\Models\TransactionDetail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Spatie\SimpleExcel\SimpleExcelReader;
 
@@ -158,7 +160,7 @@ class TransactionDetailController extends Controller
             $deleteSummary = SavingSummary::where(['transaction_id_linked' => $id->linked])->forcedelete();
             //build data
             $buildData = $cekTransaksiUnpaid->map(function ($item, $index)  use ($id, $cekTransaksiUnpaid) {
-                $savingTotal = $cekTransaksiUnpaid->sum('nominal');
+                $savingTotal = $cekTransaksiUnpaid->sum('nominal'); // where approved
                 $id->transaction->update(['total_donasi' => $savingTotal]);
                 return [
                     'ulid'                  => Ulid::generate(),
@@ -189,6 +191,105 @@ class TransactionDetailController extends Controller
             DB::rollback();
             Log::debug($th->getMessage());
             return $this->error('', 'SYNC Failed', 500);
+        }
+    }
+
+    public function paidoff(TransactionDetail $id, Request $request)
+    {
+
+
+        $this->validate($request, [
+            'price'  => 'required'
+        ]);
+
+        $harga = $request->input('price');
+
+        DB::beginTransaction();
+        try {
+            //ambil dulu data nya semua data yang terkait
+            $sumamryData = new SavingSummary;
+            //validasi dulu bahwa semua transaksi harus semua sudah approved
+            if ($sumamryData->where('transaction_id_linked', $id->linked)) {
+                return $this->error('', "Maaf Masih ada transkasi yang status nya belum Approved", 422);
+            }
+            //validasi harga tabungan dengan total tabungan yang telah terkumpul
+            $totalTabunganTerkumpul = $sumamryData->where('transaction_id_linked', $id->linked)->first()->saving_total;
+            if ($harga > $totalTabunganTerkumpul) {
+                return $this->error('', "Total tabungan sekarang " .  (int)$totalTabunganTerkumpul  . " masih kurang sebesar " . $harga - $totalTabunganTerkumpul, 422);
+            } else {
+                //memberi tanda bahwa transaksi tabungan telah selesai / lunas
+                $datas = TransactionDetail::where('linked', $id->linked)->update(['settled' => '1']);
+                //Masukan sisa tabungan kedalam transasi baru
+                $latestTransaction = Transaction::withTrashed()->max('kode_transaksi') ?? 0;
+                $kode_transaksi = $latestTransaction + 1;
+                // $tanggal_kuitansi = now()->format('Y-m-d');
+                $prevTransaction = $id->transaction;
+                $sisaTabungan = $totalTabunganTerkumpul - $harga;
+                $data = [
+                    'kode_transaksi'        => $kode_transaksi,
+                    'donor_id'              => $prevTransaction->donor_id,
+                    'payment_method_id'     => $prevTransaction->payment_method_id,
+                    'account_payment_id'    => $prevTransaction->account_payment_id,
+                    'tanggal_kuitansi'      => $prevTransaction->tanggal_kuitansi,
+                    'tanggal_approval'      => $prevTransaction->tanggal_approval,
+                    'status'                => 'Approved', //Approved | Claimed | unApprove
+                    'description'           => "Sisa Tabungan dari Transakasi dengan Nomor TRX-" . $prevTransaction->kode_transaksi . " Total tabungan pada transakasi TRX-" . $prevTransaction->kode_transaksi . " adalah " . $totalTabunganTerkumpul .
+                        " Sedangkan harga program nya adalah " . $harga . " Jadi masih ada sisa tabungan dengan jumlah "  . $sisaTabungan,
+                    'total_donasi'          => $totalTabunganTerkumpul - $harga,
+                    'no_kuitansi'           => $request->kuitansi,
+                    'created_by'            => Auth::user()->id,
+                    'total_donasi'          => $sisaTabungan,
+                    'subject'               => "Sisa Tabungan dari Transakasi dengan Nomor TRX-" . $prevTransaction->kode_transaksi,
+                    'created_at'            => now()->format('Y-m-d H:i:s'),
+                    'updated_at'            => now()->format('Y-m-d H:i:s'),
+                    'approved_by'           => $prevTransaction->approved_by,
+                ];
+                $insertSisaTabungan = Transaction::create($data);
+                $insertSisaTabungan->refresh();
+                $detail =  $id->transaction->detailTransactions->first();
+                $insertSisaTabungan->detailTransactions()->create([
+                    'ulid'          => Ulid::generate(),
+                    'program_id'    => $detail->program_id,
+                    'nominal'       => $sisaTabungan,
+                    'description'           => "Sisa Tabungan dari Transakasi dengan Nomor TRX-" . $prevTransaction->kode_transaksi . " Total tabungan pada transakasi TRX-" . $prevTransaction->kode_transaksi . " adalah " . $totalTabunganTerkumpul .
+                        " Sedangkan harga program nya adalah " . $harga . " Jadi masih ada sisa tabungan dengan jumlah "  . $sisaTabungan,
+                    'main'           => (string) 1,
+                    'settled'       => (string) 0,
+                    'linked'        => $insertSisaTabungan->id,
+                    'created_at'    => now()->format('Y-m-d H:i:s'),
+                    'updated_at'    => now()->format('Y-m-d H:i:s')
+
+                ]);
+                // update settle date atau tanggal pelunasan
+                $sumamryDataUpdate = $sumamryData->where('transaction_id_linked', $id->linked)->first()->update(
+                    [
+                        'settled_date' => now()->format('Y-m-d H:i:s')
+                    ]
+                );
+
+
+                $sumamryData->create([
+                    'kode_transaksi'        => $kode_transaksi,
+                    'nominal'               => $sisaTabungan,
+                    'payment_to'            => (int) 1,
+                    'created_at'            => now()->format('Y-m-d H:i:s'),
+                    'saving_total'          => $sisaTabungan,
+                    'desc'                  => "Sisa Tabungan dari Transakasi dengan Nomor TRX-" . $prevTransaction->kode_transaksi . " Total tabungan pada transakasi TRX-" . $prevTransaction->kode_transaksi . " adalah " . $totalTabunganTerkumpul .
+                        " Sedangkan harga program nya adalah " . $harga . " Jadi masih ada sisa tabungan dengan jumlah "  . $sisaTabungan,
+                    'transaction_id_linked' => $insertSisaTabungan->id,
+                    'tanggal_kuitansi'      => $prevTransaction->tanggal_kuitansi,
+                    'tanggal_approval'      => $prevTransaction->tanggal_approval,
+                    'status_transkasi'      => 'Approved'
+                ]);
+            }
+            DB::commit();
+            return $this->success($insertSisaTabungan, [
+                'message'   => 'Paid OFF success',
+            ]);
+        } catch (\Throwable $th) {
+            DB::rollback();
+            Log::debug($th->getMessage());
+            return $this->error('', 'PAID OFF Failed', 500);
         }
     }
 

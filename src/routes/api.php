@@ -149,6 +149,7 @@ route::group(['middleware' => ['auth:sanctum']], function () {
         Route::put('/transactions/detail/unpaid/{id}', [TransactionDetailController::class, 'unpaid']);
         Route::put('/transactions/detail/sync/{id}', [TransactionDetailController::class, 'sync']);
         Route::get('/transactions/detail/unlink/{id}', [TransactionDetailController::class, 'listUnlink']);
+        Route::put('/transactions/detail/paidoff/{id}', [TransactionDetailController::class, 'paidoff']);
     });
 
     Route::prefix('lists')->group(function () {
