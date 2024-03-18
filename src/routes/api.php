@@ -142,6 +142,7 @@ route::group(['middleware' => ['auth:sanctum']], function () {
         Route::delete('/transactions/{transaction}', [TransactionController::class, 'destroy']);
         Route::put('/transactions/approval/{transaction}', [TransactionController::class, 'approval']);
         Route::put('/transactions/paidoff/{transaction}', [TransactionController::class, 'paidoff']);
+        Route::post('/transactions/download/{transaction}', [TransactionController::class, 'download']);
 
 
         //transactions Detail
@@ -150,6 +151,7 @@ route::group(['middleware' => ['auth:sanctum']], function () {
         Route::put('/transactions/detail/sync/{id}', [TransactionDetailController::class, 'sync']);
         Route::get('/transactions/detail/unlink/{id}', [TransactionDetailController::class, 'listUnlink']);
         Route::put('/transactions/detail/paidoff/{id}', [TransactionDetailController::class, 'paidoff']);
+        Route::post('/transactions/detail/download/{id}', [TransactionDetailController::class, 'download']);
     });
 
     Route::prefix('lists')->group(function () {

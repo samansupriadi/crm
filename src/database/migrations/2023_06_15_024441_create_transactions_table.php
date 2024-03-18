@@ -40,7 +40,7 @@ return new class extends Migration
                 ->constrained('users')
                 ->onUpdate('cascade')
                 ->onDelete('cascade');
-            
+
             $table->foreignId('deleted_by')
                 ->nullable()
                 ->default(null)
@@ -54,7 +54,7 @@ return new class extends Migration
                 ->constrained('users')
                 ->onUpdate('cascade')
                 ->onDelete('cascade');
-            
+
             $table->foreignId('reject_by')
                 ->nullable()
                 ->default(null)

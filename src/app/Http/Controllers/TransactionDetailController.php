@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Program;
+use PDF;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use App\Models\SavingSummary;
@@ -132,7 +133,6 @@ class TransactionDetailController extends Controller
         if (!$cekProgram) {
             return $this->error(NULL, 'Transakasi ini Bukan Transaksi tabungan', 422);
         }
-        // return $id;
 
         //validasi bahwa sudah ada transaksi yang unpaid pada program bersangkutan
         $cekTransaksiUnpaid = DB::table('transactions')
@@ -291,6 +291,63 @@ class TransactionDetailController extends Controller
             Log::debug($th->getMessage());
             return $this->error('', 'PAID OFF Failed', 500);
         }
+    }
+
+
+    public function download(TransactionDetail $id)
+    {
+
+
+        $datas = $id->loadMissing('transaction', 'program', 'savingDetails');
+
+        $donor = $datas->transaction->donor;
+        $telp = $donor->mobile;
+
+
+        if ($donor->mobile2) {
+            $telp .= " / " .   $donor->mobile2;
+        }
+        if ($donor->home_phone) {
+            $telp .= " / " .   $donor->home_phone;
+        }
+        if ($donor->telp_kantor) {
+            $telp .= " / " .   $donor->telp_kantor;
+        }
+
+        $kota = null;
+
+        if ($donor->kota_kabupaten) {
+            $kota .= $donor->kota_kabupaten;
+        }
+        if ($donor->provinsi_address) {
+            $kota .=  ', ' .  $donor->provinsi_address;
+        }
+
+
+        $buildDatas = [
+            'program'   => $datas->program->program_name,
+            'donatur'   => $donor->kode_donatur . ' - ' . $donor->donor_name,
+            'npwp'      => $donor->npwp,
+            'phone'     => $telp,
+            'alamat'    => $donor->alamat,
+            'kota'              => $kota,
+            'pos'               => $donor->kode_pos,
+            'tabungan'  => $datas->savingDetails->map(function ($item) {
+                return [
+                    'kode_transakasi'   => 'TRX-' . $item->kode_transaksi,
+                    'nominal'           => "Rp " . number_format($item->nominal, 2, ',', '.'),
+                    'desc'              => $item->desc,
+                    'tanggal_kuitansi'  => $item->tanggal_kuitansi,
+                    'status'            => $item->status_transkasi
+                ];
+            }),
+            'total_tabungan' => "Rp " . number_format($datas->savingDetails->sum('nominal'), 2, ',', '.')
+        ];
+
+        $pdf = PDF::loadView('transaction.tabungan', ['datas' => $buildDatas]);
+        return $pdf->download('tabungan-' .  $donor->kode_donatur . '.pdf');
+        return view('transaction.tabungan');
+        return $id->transaction;
     }
 
     public function listUnlink(TransactionDetail $id)

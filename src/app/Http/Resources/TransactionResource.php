@@ -67,7 +67,7 @@ class TransactionResource extends JsonResource
                             return [
                                 'id'            => $savingDetail->ulid,
                                 'date'          => $savingDetail->created_at->format('Y-m-d H:i:s'),
-                                'no_transaksi'  => "TRX-" . $savingDetail->kode_transaksi,
+                                'no_transaksi'  => $savingDetail->kode_transaksi,
                                 'nilai'         => number_format($savingDetail->nominal, 2, ',', '.'),
                                 'kode_transaksi' => $savingDetail->kode_transaksi,
                                 'keterangan'    => "Pembayaran ke - " .  $savingDetail->payment_to,
@@ -79,10 +79,11 @@ class TransactionResource extends JsonResource
                         'id'        => $detailTransaction->ulid,
                         'nominal'   => $detailTransaction->nominal,
                         'keterangan' => $detailTransaction->description,
-                        'program'   => [
-                            'id'           => $detailTransaction->program->ulid,
-                            'program_name' => $detailTransaction->program->program_name,
-                        ],
+                        // 'program'   => [
+                        //     'id'           => $detailTransaction->program->ulid,
+                        //     'program_name' => $detailTransaction->program->program_name,
+                        // ],
+                        'program_name'          => $detailTransaction->program->program_name,
                         'transaction_tabungan'  => $tabunganData,
                     ];
                 }),
@@ -91,7 +92,7 @@ class TransactionResource extends JsonResource
 
         return array_merge([
             'id'                    => $this->ulid,
-            'no_transaksi'          => 'TRX' . $this->kode_transaksi,
+            'no_transaksi'          => $this->kode_transaksi,
             'subject'               => $this->subject,
             'tanggal_kuitanasi'     => $this->tanggal_kuitansi,
             'tanggal_approval_'     => $this->tanggal_approval,

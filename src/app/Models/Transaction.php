@@ -22,7 +22,7 @@ class Transaction extends Model
     use HasFactory, SoftDeletes, HasUlids;
 
     protected $hidden = ['id', 'created_at', 'updated_at', 'deleted_at'];
-    protected $with = ['payment', 'method', 'detailTransactions.program', 'rejectBy', 'donor', 'approveBy'];
+    protected $with = ['payment', 'method', 'detailTransactions.program', 'rejectBy', 'donor', 'approveBy', 'createdBy'];
 
     protected $fillable = [
         'kode_transaksi', 'subject', 'tanggal_kuitansi', 'donor_id', 'payment_method_id',
