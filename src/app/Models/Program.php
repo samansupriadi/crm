@@ -26,6 +26,8 @@ class Program extends Model
 
     protected $hidden = ['id', 'created_at', 'updated_at', 'deleted_at'];
 
+    protected $with = ['category'];
+
     public function uniqueIds(): array
     {
         return [

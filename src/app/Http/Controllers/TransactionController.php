@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use PDF;
 use DateTime;
+use Carbon\Carbon;
+use App\Models\User;
 use App\Models\Donor;
 use App\Models\Program;
 use App\Models\Transaction;
@@ -10,7 +13,6 @@ use Illuminate\Http\Request;
 use App\Models\paymentMethod;
 use App\Models\SavingSummary;
 use App\Traits\HttpResponses;
-use Illuminate\Http\Response;
 use App\Models\accountPayment;
 use Illuminate\Validation\Rule;
 use Symfony\Component\Uid\Ulid;
@@ -24,8 +26,9 @@ use Spatie\SimpleExcel\SimpleExcelReader;
 use App\Http\Resources\TransactionResource;
 use App\Http\Requests\StoreTransactionRequest;
 use App\Http\Requests\UpdateTransactionRequest;
-use App\Models\User;
+use App\Models\Perolehan;
 use Illuminate\Contracts\Database\Eloquent\Builder;
+
 
 class TransactionController extends Controller
 {
@@ -105,28 +108,11 @@ class TransactionController extends Controller
                     ->orWhere('no_kuitansi',  $q)
                     ->orWhere(function ($subquery) use ($q) {
                         $subquery->whereHas('donor', function ($programQuery) use ($q) {
-                            $programQuery->where('ulid', $q);
+                            $programQuery->where('donor_name', $q);
                         });
                     });
-                // ->orWhere(function ($subquery) use ($program_id) {
-                //     $subquery->whereHas('detailTransactions.program', function ($programQuery) use ($program_id) {
-                //         $programQuery->where('ulid', $program_id);
-                //     });
-                // })
-                // ->orWhere(function ($subquery) use ($payment_method_id) {
-                //     $subquery->whereHas('method', function ($paymentQuery) use ($payment_method_id) {
-                //         $paymentQuery->where('ulid', $payment_method_id);
-                //     });
-                // })
-                // ->orWhere(function ($subquery) use ($akun_bank_id) {
-                //     $subquery->whereHas('payment', function ($bankQuery) use ($akun_bank_id) {
-                //         $bankQuery->where('ulid', $akun_bank_id);
-                //     });
-                // });
             });
         }
-
-
         return TransactionResource::collection($data->paginate($per_page));
     }
 
@@ -141,7 +127,6 @@ class TransactionController extends Controller
     public function store(StoreTransactionRequest $request)
     {
         DB::beginTransaction();
-
         try {
 
             $latestTransaction = Transaction::withTrashed()->max('kode_transaksi') ?? 0;
@@ -170,20 +155,19 @@ class TransactionController extends Controller
                 'created_by'            => Auth::user()->id
             ];
 
+            //create new transaction
             $newTransaction = Transaction::create($data);
-
             $details = $request->details;
-
             if (isset($request->details)) {
                 for ($x = 0; $x < count($request->details); $x++) {
                     $detailProgram = \App\Models\Program::where('ulid', $request->details[$x]['program_id'])->first();
                     $details[$x]['program_id'] = $detailProgram->id;
                 }
             }
-
+            //create new transaction detail
             $newTransaction->detailTransactions()->createMany($details);
 
-
+            //upload bukti donasi
             if (!empty($request->file('bukti_donasi'))) {
                 foreach ($request->file('bukti_donasi') as $file) {
                     $path = Transaction::uploadBuktiDonasi($file);
@@ -195,15 +179,16 @@ class TransactionController extends Controller
             $newTransaction->refresh();
 
             foreach ($newTransaction->detailTransactions as $detail) {
+                //cek apakah user pernah bertransakasi pada program yang sama
                 $dataToCheck = $newTransaction->donor->programs()->where(['program_id' => $detail->program_id, 'donor_id' => $newTransaction->donor_id])->first();
-
-                //adding user transaksi to total penghimpunan global untuk program
+                //ambil data program bersangkutan
                 $programDonasi = Program::where('id', $detail->program_id)->first();
-                $isSavings = $programDonasi->is_savings ?? false;
+                //adding user transaksi to total penghimpunan global untuk program
                 $programDonasi->update([
                     'total_penghimpunan' => $detail->nominal + $programDonasi->total_penghimpunan
                 ]);
 
+                $isSavings = $programDonasi->is_savings ?? false;
                 if ($isSavings && $detail->nominal > 0) {
                     $existSavings = TransactionDetail::where('program_id', $detail->program_id)
                         ->where('settled', '0')
@@ -214,27 +199,18 @@ class TransactionController extends Controller
                         ->first();
 
                     if (!$existSavings) {
-                        // Buat baru
-                        // dd($detail->id);
                         $parentTransactionId        = $detail->id;
                         $detail->update(['linked'   => $parentTransactionId]);
                         $newTransaction->refresh();
-                        // $parentTransactionDetailId  = $detail->id; 
                     } else {
-                        // Inherited to $existSavings
-                        // dd($existSavings->linked);
                         $parentTransactionId = $existSavings->linked;
                         $detail->update([
                             'linked' => $parentTransactionId,
                             'main'   => '0'
                         ]);
-                        // $parentTransactionDetailId  = $existSavings->id;
                     }
-
                     // Buat SavingSummary baru
                     $newSavings = SavingSummary::create([
-                        // 'transaction_detail_id' => $detail->id,
-                        // 'parent_transaction_id' => $parentTransactionId,
                         'transaction_id_linked' => $parentTransactionId,
                         'kode_transaksi'        => $newTransaction->kode_transaksi,
                         'nominal'               => $detail->nominal,
@@ -257,8 +233,6 @@ class TransactionController extends Controller
                     ])->updateExistingPivot($dataToCheck->pivot->program_id, ['total_donasi_program' => $newValue, 'updated_at' => now()]);
                 }
             }
-
-
             //totaling all transaksi donasi donatur
             $newTransaction->donor->refresh();
             $totalDonasi = collect($newTransaction->donor->programs)->reduce(function ($carry, $item) {
@@ -266,7 +240,6 @@ class TransactionController extends Controller
             }, 0);
 
             DonorInformationDetail::where('donor_id', $newTransaction->donor_id)->update(['totaldonasi' => $totalDonasi]);
-
             DB::commit();
             return $this->success($data, 'Add New Transactions Success');
         } catch (\Throwable $th) {
@@ -275,6 +248,7 @@ class TransactionController extends Controller
             return $this->error('', 'Add New Transaction Failed', 500);
         }
     }
+
 
 
     public function update(UpdateTransactionRequest $request, Transaction $transaction)
@@ -292,6 +266,12 @@ class TransactionController extends Controller
             jika request detail tidak ada tapi di data existing ada
         5.  jika poto berubah
         */
+
+        //validasi bahwa yang bisa di update hanya transakasi yang status nya bukan approved 
+        if ($transaction->status == "Approved") {
+            return $this->error(NULL, 'Update Gagal Karna Transakasi sudah di Approve, Hubungi TIM finance Untuk ubah ke Claim/Unapproved', 422);
+        }
+
         DB::beginTransaction();
         try {
             $transaction->update([
@@ -304,12 +284,10 @@ class TransactionController extends Controller
 
             $transactionDetailsExisting = $transaction->detailTransactions;
             $transactionDetailsNew = collect($request->details);
-            // dd($transactionDetailsExisting, $transactionDetailsNew);
 
             /*
-            reduce nominal from donor total
-            and add with new nominal
-        */
+            reduce nominal from donor total and add with new nominal
+            */
             $transaction->donor->update([
                 'totaldonasi'   => $transaction->donor->detail->totaldonasi - $transactionDetailsExisting->pluck('nominal')->sum() + $transactionDetailsNew->pluck('nominal')->sum(),
             ]);
@@ -351,6 +329,43 @@ class TransactionController extends Controller
             foreach ($transaction->detailTransactions as $detailUpdate) {
                 $dataToCheck = $transaction->donor->programs()->where(['program_id' => $detailUpdate->program_id, 'donor_id' => $transaction->donor_id])->first();
 
+
+                //pengecekan jika ternyata data nya berubah ke program tabungan
+                $programDonasi = Program::where('id', $detailUpdate->program_id)->first();
+                $isSavings = $programDonasi->is_savings ?? false;
+                if ($isSavings && $detailUpdate->nominal > 0) {
+                    $existSavings = TransactionDetail::where('program_id', $detailUpdate->program_id)
+                        ->where('settled', '0')
+                        ->whereHas('transaction', function (Builder $query) use ($transaction) {
+                            $query->where('donor_id', $transaction->donor_id);
+                        })
+                        ->with('transaction')
+                        ->first();
+
+                    if (!$existSavings) {
+                        $parentTransactionId        = $detailUpdate->id;
+                        $detailUpdate->update(['linked'   => $parentTransactionId]);
+                        $transaction->refresh();
+                    } else {
+                        $parentTransactionId = $existSavings->linked;
+                        $detailUpdate->update([
+                            'linked' => $parentTransactionId,
+                            'main'   => '0'
+                        ]);
+                    }
+                    // Buat SavingSummary baru
+                    $newSavings = SavingSummary::create([
+                        'transaction_id_linked' => $parentTransactionId,
+                        'kode_transaksi'        => $transaction->kode_transaksi,
+                        'nominal'               => $detailUpdate->nominal,
+                        'payment_to'            => (SavingSummary::where('transaction_id_linked', $parentTransactionId)->max('payment_to') ?? 0) + 1
+                    ]);
+
+                    // Update status settled dari $detail menjadi "0"
+                    $detailUpdate->update(['settled' => "0"]);
+                }
+                //end proses tabungan
+
                 if (!$dataToCheck) {
                     $transaction->donor->programs()->attach($detailUpdate->program_id, [
                         'total_donasi_program' => $detailUpdate->nominal,
@@ -391,9 +406,58 @@ class TransactionController extends Controller
         }
     }
 
+    private function reduceNominal($transaction)
+    {
+        /*
+        1. Kurangi dari tabel donor_program
+        2. Kurangi dari tabel kategori program (Yang ini mostly belum implement)
+        3. kurangi dari tabel program
+        4. kurangi dari total donasi di tabel donatur
+        */
+        DB::beginTransaction();
+
+
+        try {
+            // Kumpulkan semua program_id yang unik dari detailTransactions
+            $programIds = $transaction->detailTransactions->pluck('program_id')->unique();
+
+            foreach ($programIds as $programId) {
+                // Ambil detail transaksi untuk program ini
+                $detailTransactions = $transaction->detailTransactions->where('program_id', $programId);
+
+                // Hitung total donasi untuk program ini
+                $nominal = $detailTransactions->sum('nominal');
+
+                // Update total_donasi_program untuk program ini di pivot table
+                $program = $transaction->donor->programs->where('id', $programId)->first();
+
+                $program->pivot->update(['total_donasi_program' => DB::raw("total_donasi_program - $nominal")]);
+
+                // Update total_penghimpunan untuk program ini di tabel program
+                $program->update(['total_penghimpunan' => DB::raw("total_penghimpunan - $nominal")]);
+
+                // Update totaldonasi untuk donor di tabel donor_detail
+                $transaction->donor->detail->update(['totaldonasi' => DB::raw("totaldonasi - $nominal")]);
+            }
+
+
+            DB::commit();
+        } catch (\Throwable $th) {
+            DB::rollback();
+            Log::debug($th->getMessage());
+            return $this->error('', 'Delete Transactions Failed', 500);
+        }
+    }
+
 
     public function destroy(Transaction $transaction)
     {
+        $this->reduceNominal($transaction);
+
+        //validasi bahwa yang bisa di update hanya transakasi yang status nya bukan approved 
+        if ($transaction->status == "Approved") {
+            return $this->error(NULL, 'Delete Gagal Karna Transakasi sudah di Approve, Hubungi TIM finance Untuk ubah ke Claim/unApproved', 422);
+        }
         $transaction->delete();
         $transaction->update(['deleted_by' => Auth::user()->id]);
         return response()->noContent();
@@ -471,18 +535,64 @@ class TransactionController extends Controller
         }
     }
 
+    private function perolehan($transaction, $data)
+    {
+        $transactionDetail = $transaction->detailTransactions->map(function ($item) use ($transaction, $data) {
+            $persentase = $item->program->category->bagian_pengelola;
+            $hakAmil = ($persentase > 0 or $persentase != NULL) ? $item->nominal * $persentase  / 100 : 0;
+            $bagianPenyaluran = $item->nominal - $hakAmil;
+            return [
+                'ulid'                      => Ulid::generate(),
+                'transaction_id'            => $transaction->id,
+                'transaction_detail_id'     => $item->id,
+                'entity_id'                 => $item->program->entitas->id,
+                'program_id'                => $item->program->id,
+                'program_category_id'       => $item->program->category->id,
+                'donor_id'                  => $transaction->donor->id,
+                'payment_method_id'         => $transaction->payment->id,
+                'account_payment_id'        => $transaction->method->id,
+                'approved_by'                   => Auth::user()->id,
+                'update_by'                 => Auth::user()->id,
+                'kode_transaksi'            => $transaction->kode_transaksi,
+                'kode_donatur'              => preg_replace('/[^0-9]/', '', $transaction->donor->kode_donatur),
+                'program_name'              => $item->program->program_name,
+                'category_program'          => $item->program->category->category_name,
+                'payment_method'            => $transaction->method->payement_method,
+                'account_payment'           => $transaction->payment->account_payment_name,
+                'operator'                  => Auth::user()->name,
+                'bagian_penyaluran'         => $bagianPenyaluran,
+                'bagian_pengelola'          => $hakAmil,
+                'nominal_donasi'            => $item->nominal,
+                'tanggal_transakasi'        => $transaction->tanggal_kuitansi,
+                'tanggal_approval'          => $data['tanggal_approval'],
+                'keterangan'               => $item->description,
+            ];
+        });
+        Perolehan::insert($transactionDetail->toArray());
+    }
+
+
+    private function deletePerolehan($transaction)
+    {
+        Perolehan::where('transaction_id', $transaction->id)->delete();
+    }
+
+
 
     /*
     PR di sini kalo misalkan transaksi nya berubah menjadi claim, reject, unapproved adalah mengurani total nya untuk penghimpunan
-
+    jika transakasi appraove maka bikinkan penerimaan nya terpisah antara persentasi amil nya
+    jika di unapprove atau di edit ke claim remove dari laporan penerimaan.
+    1. Jika kondisi transakasi sekarang adalah APPROVED  dan request to APPROVED again  maka langsung aja return 200 sudah di approved
+    2. Jika kondisi transakasi dari APPROVED ke status lainya maka ini harus ada pengurangan
+    3. jika kondisi transasi sekarnag BUKAN APPROVED dan di ganti ke status APPROVED maka ada transaksi ke tabel perolehan
+    4. jika kondisi transaksi sekarang  BUKAN APPROVED di operasikan lagi ke  BUKAN APPROVED langsung return tanpa operasi apapun
     */
     public function approval(Request $request, Transaction $transaction)
     {
         $validated = $request->validate([
             'approval' => 'required|' . Rule::in(['Approved', 'unApprove', 'Claimed']),
         ]);
-
-        return $transaction->detailTransactions[0]->program;
 
         switch ($request->approval) {
             case "Approved":
@@ -510,49 +620,41 @@ class TransactionController extends Controller
                 ];
         }
 
-
         DB::beginTransaction();
-
         try {
-            $transaction->update($data);
-            DB::commit();
-            return $this->success([
-                'message'   => 'Approval success',
-                // 'data'      => $transaction
-            ]);
+            if ($transaction->status == 'Approved' && $data['status'] == 'Approved') {
+                DB::commit();
+                return $this->success([
+                    'message'   => 'Approval success',
+                ]);
+            } elseif ($transaction->status == 'Approved' && $data['status'] != 'Approved') {
+                $this->reduceNominal($transaction);
+                $this->deletePerolehan($transaction);
+                $transaction->update($data);
+                DB::commit();
+                return $this->success([
+                    'message'   => 'Approval success',
+                ]);
+            } elseif ($transaction->status != 'Approved' && $data['status'] == 'Approved') {
+                $this->perolehan($transaction, $data);
+                $transaction->update($data);
+                DB::commit();
+                return $this->success([
+                    'message'   => 'Approval success',
+                ]);
+            } elseif ($transaction->status != 'Approved' && $data['status'] != 'Approved') {
+                $transaction->update($data);
+                DB::commit();
+                return $this->success([
+                    'message'   => 'Approval success',
+                ]);
+            }
         } catch (\Throwable $th) {
             DB::rollback();
             Log::debug($th->getMessage());
             return $this->error('', 'Approval Failed', 500);
         }
     }
-
-    //end point untuk keperluan api update linked to agar  meninduk ke main
-    public function listLink(Transaction $transaction)
-    {
-        //ini akan ada bug kalo program tabungan nya lebih dari satu dalam satu transaksi yang sama
-        //cek dulu di sini buat pengecekan bahwa dalam satu transaksi yang sama tesebut pastikan bahwa program tabungan hanya 1 dalam satu transaksi
-
-        $programIds = $transaction->detailTransactions->where('settled', '0')->where('program.is_savings', '1')->pluck('program.id')->toArray();
-        $links = TransactionDetail::whereHas('transaction', function (Builder $query) use ($transaction) {
-            $query->where('donor_id', $transaction->donor_id);
-        })
-            ->whereIn('program_id', $programIds)
-            ->where('main', '1')
-            ->with('transaction')
-            ->get();
-        return response()->json($links, Response::HTTP_OK);
-    }
-
-    //membuat program tabungan menjadi lunas
-    public function paidoff(Transaction $transaction, Request $request)
-    {
-        //ini akan ada bug kalo program tabungan nya lebih dari satu dalam satu transaksi yang sama
-        //cek dulu di sini buat pengecekan bahwa dalam satu transaksi yang sama tesebut pastikan bahwa program tabungan hanya 1 dalam satu transaksi
-        $programIds = $transaction->detailTransactions->where('settled', '0')->where('program.is_savings', '1')->pluck('program.id')->toArray();
-        return $programIds;
-    }
-
 
     private function getMethodPaymentId($method, $methodPaysCollection)
     {
@@ -566,5 +668,54 @@ class TransactionController extends Controller
         return $collectionAkuns->first(function ($item) use ($akun) {
             return $item->akun === $akun;
         })->id;
+    }
+
+    public function download(Transaction $transaction)
+    {
+
+        $telp = $transaction->donor->mobile;
+
+        if ($transaction->donor->mobile2) {
+            $telp .= " / " .   $transaction->donor->mobile2;
+        }
+        if ($transaction->donor->home_phone) {
+            $telp .= " / " .   $transaction->donor->home_phone;
+        }
+        if ($transaction->donor->telp_kantor) {
+            $telp .= " / " .   $transaction->donor->telp_kantor;
+        }
+
+        $kota = null;
+
+        if ($transaction->donor->kota_kabupaten) {
+            $kota .= $transaction->donor->kota_kabupaten;
+        }
+        if ($transaction->donor->provinsi_address) {
+            $kota .=  ', ' .  $transaction->donor->provinsi_address;
+        }
+
+        $datas = [
+            'kode_donatur'      => $transaction->donor->kode_donatur,
+            'kode_transaksi'    => $transaction->kode_transaksi,
+            'subject'           => $transaction->subject,
+            'total_donasi'      => $transaction->total_donasi,
+            'description'       => $transaction->description,
+            'account_payment_name'   => $transaction->payment->account_payment_name,
+            'method'            => $transaction->method->payement_method,
+            'program'            => $transaction->detailTransactions,
+            'kode_donatur'      => $transaction->donor->kode_donatur,
+            'donor_name'        =>  '[ ' . $transaction->donor->kode_donatur .  ' ]'  .   $transaction->donor->donor_name,
+            'telephone'         => $telp,
+            'alamat'            => $transaction->donor->alamat,
+            'npwp'              => $transaction->donor->npwp,
+            'kota'              => $kota,
+            'pos'               => $transaction->donor->kode_pos,
+            'total'             => "Rp " . number_format($transaction->total_donasi, 2, ',', '.'),
+            'tanggal_transaksi' =>  Carbon::parse($transaction->tanggal_kuitansi)->format('F d, Y'),
+            'petugas'           => $transaction->createdBy->name
+        ];
+
+        $pdf = PDF::loadView('transaction.download', ['datas' => $datas]);
+        return $pdf->download('TRX-' .  $transaction->kode_transaksi  . '-' . $transaction->donor->kode_donatur . '.pdf');
     }
 }
