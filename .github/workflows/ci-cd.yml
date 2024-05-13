@@ -30,7 +30,7 @@ jobs:
             -Dsonar.projectKey=${{ github.repository_owner }}_${{ github.event.repository.name }}_${{ github.ref_name }}
             -Dsonar.exclusions=${{ env.SONAR_EXCLUSIONS }}
     
-  Build Image:
+  Build-Image:
     runs-on: ubuntu-latest
     steps:
       - name: Set up QEMU
