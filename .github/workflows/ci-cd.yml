@@ -9,11 +9,9 @@ on:
 
 jobs:
   code-quality:
-
     runs-on: ubuntu-latest
     env:
       SONAR_EXCLUSIONS: '**/*.html,**/*.phtml,**/*.css,**/*.js'
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -30,3 +28,13 @@ jobs:
           args: >
             -Dsonar.projectKey=${{ github.repository_owner }}_${{ github.event.repository.name }}_${{ github.ref_name }}
             -Dsonar.exclusions=${{ env.SONAR_EXCLUSIONS }}
+    
+    Build Image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+       
