@@ -97,8 +97,9 @@ jobs:
       - name: ZAP Scan
         uses: zaproxy/action-baseline@v0.12.0
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           target: 'https://hrmis.neuron.id'
-          contextFile: '$GITHUB_WORKSPACE/zap/zap.yaml'
+          docker_name: 'ghcr.io/zaproxy/zaproxy:stable'
 
 
       
