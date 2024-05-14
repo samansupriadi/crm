@@ -1,5 +1,6 @@
 name: CI AND CD
 
+
 on:
   push:
     branches:
@@ -91,6 +92,7 @@ jobs:
     #needs: Deploy
     name: Scan the webapplication
     runs-on: ubuntu-latest
+    permissions: write-all
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
