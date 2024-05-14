@@ -97,7 +97,7 @@ jobs:
       - name: ZAP Scan
         uses: zaproxy/action-baseline@v0.3.0
         with:
-          target: 'https://hrmis.neuron.id'
+          target: 'https://www.zaproxy.org'
 
 
       
