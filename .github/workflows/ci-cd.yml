@@ -31,7 +31,7 @@ jobs:
             -Dsonar.exclusions=${{ env.SONAR_EXCLUSIONS }}
     
   build-image:
-  needs: code-quality
+    needs: code-quality
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -41,7 +41,7 @@ jobs:
         run: docker build . --file Dockerfile --tag my-app:$(date +%s)
   
   push-image:
-  needs: build-image
+    needs: build-image
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
