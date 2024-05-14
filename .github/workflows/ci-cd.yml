@@ -40,9 +40,9 @@ jobs:
   Build-and-publish-image:
     #needs: Unit-Test
     runs-on: ubuntu-latest
-    env:
-      version: $(date +%s)
     steps:
+      - name: Image Version
+        run: echo "TIMESTAMP=$(date +%s)" >> $GITHUB_ENV
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
@@ -56,7 +56,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/app:${{ env.version }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/app:${{ env.TIMESTAMP }}
       
 
      
