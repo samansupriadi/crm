@@ -80,13 +80,12 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/app:${{ env.TIMESTAMP }}
   
-  DEPLOY-APP:
-    needs: ["Build-and-publish-image"]
-      runs-on: ubuntu-latest
-      steps:
-        - name: Checkout Repository
-          uses: actions/checkout@v4
-
+  Deploy:
+    needs: Build-and-publish-image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
       
 
