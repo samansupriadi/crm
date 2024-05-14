@@ -97,7 +97,7 @@ jobs:
       - name: ZAP Scan
         uses: zaproxy/action-baseline@v0.12.0
         with:
-          target: 'https://www.zaproxy.org'
+          target: 'https://hrmis.neuron.id'
           contextFile: '$GITHUB_WORKSPACE/zap/zap.yaml'
 
 
