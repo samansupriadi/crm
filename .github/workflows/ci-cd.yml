@@ -8,7 +8,6 @@ on:
     types: [closed]
 
 jobs:
-
   code-quality:
     runs-on: ubuntu-latest
     env:
@@ -38,23 +37,6 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
     
-  # build-image:
-  #   needs: Unit-Test
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout Repository
-  #       uses: actions/checkout@v4
-      
-  #     - name: Build The Docker Image
-  #       run: docker build . --file Dockerfile --tag my-app:$(date +%s)
-  
-  # push-image:
-  #   needs: build-image
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout Repository
-  #       uses: actions/checkout@v4
-
   Build-and-publish-image:
     #needs: Unit-Test
     runs-on: ubuntu-latest
@@ -72,7 +54,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/app:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/app:$(date +%s)
       
 
      
