@@ -12,12 +12,12 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SONAR_EXCLUSIONS: '**/*.html,**/*.phtml,**/*.css,**/*.js'
+    if: always()
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-    
       - name: SonarQube Scan
         uses: sonarsource/sonarqube-scan-action@master
         env:
