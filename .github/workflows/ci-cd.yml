@@ -1,6 +1,5 @@
 name: CI AND CD
 
-
 on:
   push:
     branches:
@@ -26,9 +25,11 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
           projectBaseDir: "src/"
         with:
-          args: >
+          args: 
             -Dsonar.projectKey=${{ github.repository_owner }}_${{ github.event.repository.name }}_${{ github.ref_name }}
             -Dsonar.exclusions=${{ env.SONAR_EXCLUSIONS }}
+            -Dsonar.qualitygate.wait=true
+            -Dsonar.qualitygate.timeout=900
 
   Unit-Test:
     name: Run tests
