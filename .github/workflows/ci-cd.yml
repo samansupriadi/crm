@@ -30,13 +30,13 @@ jobs:
             -Dsonar.projectKey=${{ github.repository_owner }}_${{ github.event.repository.name }}_${{ github.ref_name }}
             -Dsonar.exclusions=${{ env.SONAR_EXCLUSIONS }}
     
-  Build-Image:
-    #needs: code-quality
+   build-image:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+      
       - name: Build The Docker Image
-        uses: docker build . --file Dockerfile --tag my-app:$(date +%s)
+        run: docker build . --file Dockerfile --tag my-app:$(date +%s)
 
      
