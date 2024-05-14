@@ -58,6 +58,12 @@ jobs:
           DB_CONNECTION: sqlite
           DB_DATABASE: database/database.sqlite
         run: php artisan test
+
+  Security-check:
+  runs-on: ubuntu-latest
+  steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
       
   Build-and-publish-image:
     needs: ["code-quality", "Unit-Test"]
