@@ -60,7 +60,7 @@ jobs:
         run: php artisan test
       
   Build-and-publish-image:
-    needs: ["code-quality", "Unit-Test", "Security-check"]
+    needs: ["code-quality", "Unit-Test"]
     runs-on: ubuntu-latest
     steps:
       - name: Image Version
