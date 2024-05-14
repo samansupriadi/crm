@@ -57,6 +57,9 @@ RUN set -uex; \
 # Setup working directory
 WORKDIR /app
 
+# Copy source code to docker
+COPY src/* .
+
 # Laravel scheduler cronjob
 RUN echo "* * * * * ${USER} /usr/local/bin/php /app/artisan schedule:run >> /dev/null 2>&1"  >> /etc/cron.d/laravel-scheduler
 RUN chmod 0644 /etc/cron.d/laravel-scheduler
