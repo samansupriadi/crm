@@ -87,6 +87,19 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+  zap_scan:
+    needs: Deploy
+    name: Scan the webapplication
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: ZAP Scan
+        uses: zaproxy/action-baseline@v0.3.0
+        with:
+          target: 'https://hrmis.neuron.id'
+
+
       
 
      
