@@ -54,7 +54,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/app:$(date +%s)
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/app:${{ github.run_number }}
       
 
      
