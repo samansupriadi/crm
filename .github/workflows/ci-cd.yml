@@ -36,5 +36,5 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-        run: docker build . --file Dockerfile --tag my-app:$(date +%s)
+
      
