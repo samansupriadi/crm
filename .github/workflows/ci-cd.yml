@@ -103,7 +103,10 @@ jobs:
     name: Scan the web application
     #needs: Deploy
     runs-on: ubuntu-latest
-    permissions: write-all
+    permissions:
+      actions: write
+      issues: write
+      attestations: write
     steps:
       - name: ZAP Scan
         uses: zaproxy/action-baseline@v0.12.0
