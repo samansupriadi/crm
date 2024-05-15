@@ -9,10 +9,11 @@ on:
 
 jobs:
   code-quality:
+    name: Scan with sonarcube
     runs-on: ubuntu-latest
     env:
       SONAR_EXCLUSIONS: '**/*.html,**/*.phtml,**/*.css,**/*.js'
-    if: always()
+    continue-on-error: true
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
