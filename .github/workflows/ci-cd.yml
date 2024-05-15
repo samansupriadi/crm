@@ -91,7 +91,7 @@ jobs:
 
   #job ini akan selalu di jalankan ketika ada event PR dan merge ke branch yg telah di tentukan
   Deploy:
-    name: Deploy application
+    name: Deploy apps
     needs: Build-and-publish-image
     runs-on: ubuntu-latest
     steps:
