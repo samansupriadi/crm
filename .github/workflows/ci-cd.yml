@@ -9,13 +9,16 @@ jobs:
   #job ini akan selalu di jalankan ketika ada event PR ke branch yg telah di tentukan
   code-quality: #penamaan job, ini muncul pada graph pipeline
     name: Scan with sonarcube #Penamaan Jobs, ini muncul pada graph pipeline, penamaan jobs pada bagian ini bisa lebih deskriptif
+    #this job will only run if the PR has been merged, not just 'closed'
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     env:
       SONAR_EXCLUSIONS: '**/*.html,**/*.phtml,**/*.css,**/*.js'
+      SONAR_SOURCES: src
     continue-on-error: true #lanjut ke step berikut nya meskipun step ini gagal / error
     steps:
       - name: Checkout Repository #penamaan step, ketika salah satu job pipeline di klik maka muncul detail nya
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4 #memastikan untuk checkout ke branch dimana workflow tertriger saat ini, misal saat ini workflow nya tertriger pada saat push ke demo, maka memastian bahwa sekrang branch yang aktif adalah demo
         with:
           fetch-depth: 0
       - name: SonarQube Scan
@@ -28,12 +31,14 @@ jobs:
           args: 
             -Dsonar.projectKey=${{ github.repository_owner }}_${{ github.event.repository.name }}_${{ github.ref_name }}
             -Dsonar.exclusions=${{ env.SONAR_EXCLUSIONS }}
+            -Dsonar.sources=${{ env.SONAR_SOURCES }}
             -Dsonar.qualitygate.wait=true
             -Dsonar.qualitygate.timeout=900
 
 #job ini akan selalu di jalankan ketika ada event PR ke branch yg telah di tentukan
   Unit-Test:
     name: Run tests
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -101,11 +106,11 @@ jobs:
   #job ini akan selalu di jalankan ketika ada event PR dan merge ke branch yg telah di tentukan
   zap_scan:
     name: Scan the web application
-    #needs: Deploy
+    needs: Deploy
     runs-on: ubuntu-latest
     permissions:
-      issues: write
-      attestations: write
+      issues: write #create issue
+      attestations: write #upload artifacts
     steps:
       - name: ZAP Scan
         uses: zaproxy/action-baseline@v0.12.0
