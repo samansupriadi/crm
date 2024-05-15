@@ -3,13 +3,13 @@ name: CI AND CD
 on:
   push:
     branches:
-      - demo
+      - demo #Run workflows jika ada event push ke branch demo
   pull_request:
-    types: [closed]
-
+    branches: ["demo", "dev"]
+    types: ["opened", "closed"] #Run workflows jika ada event PR dengan type open dan juga close
 jobs:
   code-quality:
-    name: Scan with sonarcube
+    name: Scan with sonarcube #Penamaan Jobs, ini muncul pada graph pipeline
     runs-on: ubuntu-latest
     env:
       SONAR_EXCLUSIONS: '**/*.html,**/*.phtml,**/*.css,**/*.js'
