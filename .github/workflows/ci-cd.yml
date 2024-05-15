@@ -3,9 +3,10 @@ name: CI AND CD
 on:
   pull_request:
     branches: ["demo", "dev"]
-    types: ["opened", "closed"] #Run workflows jika ada event PR dengan type open dan juga close
+    types: ["opened", "closed"] #Run workflows jika ada event PR dengan type open dan juga close pada branch demo/dev
 
 jobs:
+  #job ini akan selalu di jalankan ketika ada event PR ke branch yg telah di tentukan
   code-quality: #penamaan job, ini muncul pada graph pipeline
     name: Scan with sonarcube #Penamaan Jobs, ini muncul pada graph pipeline, penamaan jobs pada bagian ini bisa lebih deskriptif
     runs-on: ubuntu-latest
@@ -30,6 +31,7 @@ jobs:
             -Dsonar.qualitygate.wait=true
             -Dsonar.qualitygate.timeout=900
 
+#job ini akan selalu di jalankan ketika ada event PR ke branch yg telah di tentukan
   Unit-Test:
     name: Run tests
     runs-on: ubuntu-latest
@@ -61,12 +63,15 @@ jobs:
           DB_CONNECTION: sqlite
           DB_DATABASE: database/database.sqlite
         run: php artisan test
-      
+
+  #job ini akan selalu di jalankan ketika ada event PR dan merge ke branch yg telah di tentukan
   Build-and-publish-image:
     name: Build and publish docker image
     needs: ["code-quality", "Unit-Test"]
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
       - name: Image Version
         run: echo "TIMESTAMP=$(date +%s)" >> $GITHUB_ENV
       - name: Set up QEMU
@@ -83,23 +88,23 @@ jobs:
         with:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/app:${{ env.TIMESTAMP }}
-  
+
+  #job ini akan selalu di jalankan ketika ada event PR dan merge ke branch yg telah di tentukan
   Deploy:
-    name: Deploy application
+    name: Deploy apps
     needs: Build-and-publish-image
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+  #job ini akan selalu di jalankan ketika ada event PR dan merge ke branch yg telah di tentukan
   zap_scan:
-    name: Scan the webapplication
-    needs: Deploy
+    name: Scan the web application
+    #needs: Deploy
     runs-on: ubuntu-latest
     permissions: write-all
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
       - name: ZAP Scan
         uses: zaproxy/action-baseline@v0.12.0
         with:
