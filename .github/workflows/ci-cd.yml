@@ -104,6 +104,7 @@ jobs:
     #needs: Deploy
     runs-on: ubuntu-latest
     permissions:
+      issues: write
       attestations: write
     steps:
       - name: ZAP Scan
