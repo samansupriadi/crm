@@ -12,5 +12,5 @@ jobs:
   greeting_job:
     runs-on: ubuntu-latest
     steps:
-      - name: "Say Hello Mona it's Monday $APP_ENV "
+      - name: "Say Hello Mona it's Monday ${{ env.APP_ENV }} "
         run: echo "lalalal $APP_ENV"
