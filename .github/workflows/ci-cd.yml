@@ -73,6 +73,7 @@ jobs:
   Build-and-publish-image:
     name: Build and publish docker image
     needs: ["code-quality", "Unit-Test"]
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -98,10 +99,18 @@ jobs:
   Deploy:
     name: Deploy apps
     needs: Build-and-publish-image
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+      - name: Repository Dispatch
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.REPO_ACCESS_TOKEN }}
+          repository: samansupriadi/crm-ops
+          event-type: my-event
+          client-payload: '{"github: ${{ toJson(github) }}"}'
 
   #job ini akan selalu di jalankan ketika ada event PR dan merge ke branch yg telah di tentukan
   zap_scan:
