@@ -1,6 +1,8 @@
 name: CI AND CD
 
 on:
+  push:
+    branches: [ "test" ]
   pull_request:
     branches: ["demo", "dev", "test"]
     types: ["closed"] #Run workflows jika ada event PR dengan type open dan juga close pada branch demo/dev
