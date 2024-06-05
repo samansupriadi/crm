@@ -6,7 +6,7 @@ on:
       types: ["closed"]
 
 env:
-    APP_ENV: ${{ github.ref_name == 'demo' && 'demodemo' || 'value_for_other_branches' }}
+    APP_ENV: ${{ github.ref_name == 'demo' && 'demo' || github.ref_name == 'dev' && 'development' || github.ref_name == 'staging-qa' && 'staging' || github.ref_name == 'main' && 'production'  }}
 
 jobs:
   greeting_job:
