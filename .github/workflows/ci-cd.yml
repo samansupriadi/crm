@@ -1,12 +1,14 @@
 name: CI AND CD
 
 on:
+  # push:
+  #   branches: [ "test" ]
   pull_request:
-    branches: ["demo", "dev"]
+    branches: ["demo", "dev", "test"]
     types: ["closed"] #Run workflows jika ada event PR dengan type open dan juga close pada branch demo/dev
 
 jobs:
-  #job ini akan selalu di jalankan ketika ada event PR ke branch yg telah di tentukan
+  # #job ini akan selalu di jalankan ketika ada event PR ke branch yg telah di tentukan
   code-quality: #penamaan job, ini muncul pada graph pipeline
     name: Scan with sonarcube #Penamaan Jobs, ini muncul pada graph pipeline, penamaan jobs pada bagian ini bisa lebih deskriptif
     #this job will only run if the PR has been merged, not just 'closed'
@@ -110,7 +112,8 @@ jobs:
           token: ${{ secrets.REPO_ACCESS_TOKEN }}
           repository: samansupriadi/crm-ops
           event-type: my-event
-          client-payload: '{"github: ${{ toJson(github) }}"}'
+          client-payload: '{"github": ${{ toJson(github) }}}'
+          
 
   # #job ini akan selalu di jalankan ketika ada event PR dan merge ke branch yg telah di tentukan
   # zap_scan:
