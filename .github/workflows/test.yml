@@ -6,7 +6,7 @@ on:
       types: ["closed"]
 
 env:
-  DAY_OF_WEEK: Monday
+    APP_ENV: ${{ github.ref_name == 'demo' && 'demodemo' || 'value_for_other_branches' }}
 
 jobs:
   greeting_job:
@@ -15,6 +15,6 @@ jobs:
       Greeting: Hello
     steps:
       - name: "Say Hello Mona it's Monday 1. ${{ github.ref_name }} 2.  ${GITHUB_REF##*/}"
-        run: echo "$Greeting $First_Name. Today is $DAY_OF_WEEK!"
+        run: echo "$Greeting $First_Name. Today is $DAY_OF_WEEK! $APP_ENV"
         env:
           First_Name: Mona
