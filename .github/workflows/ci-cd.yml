@@ -112,8 +112,7 @@ jobs:
           token: ${{ secrets.REPO_ACCESS_TOKEN }}
           repository: samansupriadi/crm-ops
           event-type: my-event
-          client-payload: '{"github": ${{ toJson(github) }}}'
-          
+          client-payload: '{"repo": "test-repo", "env": "envirorment repo"}'          
 
   # #job ini akan selalu di jalankan ketika ada event PR dan merge ke branch yg telah di tentukan
   # zap_scan:
