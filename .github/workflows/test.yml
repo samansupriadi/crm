@@ -1,0 +1,20 @@
+name: Greeting on variable day
+
+on:
+    pull_request:
+      branches: ["demo", "dev", "test"]
+      types: ["closed"]
+
+env:
+  DAY_OF_WEEK: Monday
+
+jobs:
+  greeting_job:
+    runs-on: ubuntu-latest
+    env:
+      Greeting: Hello
+    steps:
+      - name: "Say Hello Mona it's Monday 1. ${{ github.ref_name }} 2.  ${GITHUB_REF##*/}"
+        run: echo "$Greeting $First_Name. Today is $DAY_OF_WEEK!"
+        env:
+          First_Name: Mona
