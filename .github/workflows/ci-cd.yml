@@ -1,11 +1,12 @@
 name: CI AND CD
 
 on:
-  # push:
-  #   branches: [ "test" ]
   pull_request:
-    branches: ["demo", "dev", "test"]
-    types: ["closed"] #Run workflows jika ada event PR dengan type open dan juga close pada branch demo/dev
+    branches: ["demo", "dev"]
+    types: ["closed"] #Run workflows jika ada event PR lalu close pada branch demo/dev
+
+env:
+  APP_ENV: Monday
 
 jobs:
   # #job ini akan selalu di jalankan ketika ada event PR ke branch yg telah di tentukan
@@ -74,6 +75,7 @@ jobs:
   #job ini akan selalu di jalankan ketika ada event PR dan merge ke branch yg telah di tentukan
   Build-and-publish-image:
     name: Build and publish docker image
+    environment: 
     needs: ["code-quality", "Unit-Test"]
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
