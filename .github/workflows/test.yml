@@ -14,7 +14,5 @@ jobs:
     env:
       Greeting: Hello
     steps:
-      - name: "Say Hello Mona it's Monday 1. ${{ github.ref_name }} 2.  ${GITHUB_REF##*/}"
-        run: echo "$Greeting $First_Name. Today is $DAY_OF_WEEK! $APP_ENV"
-        env:
-          First_Name: Mona
+      - name: "Say Hello Mona it's Monday $APP_ENV "
+        run: echo "$APP_ENV"
