@@ -30,7 +30,7 @@ jobs:
           echo "env=${{ github.ref_name == 'demo' && 'demo' || github.ref_name == 'development' && 'development' || github.ref_name == 'staging-qa' && 'staging' || github.ref_name == 'main' && 'production'  }}" >> "$GITHUB_OUTPUT"
           version=""
           if [[ "$env" != "false" ]] && [[ "$env" != "production" ]]; then
-            version=`date +%Y.%m.%d`-${env}
+            version=`date +%Y.%m.%d`-$env_${GITHUB_SHA}
           elif [[ "$env" == "ccc" ]]; then
             version="cccccc"
           else
