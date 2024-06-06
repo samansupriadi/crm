@@ -42,4 +42,4 @@ jobs:
     steps:
       - name: 'Print env name'
         shell: bash
-        run: echo 'Using ${{ needs.get_target_env.outputs.target_env }} '
+        run: echo "Using ${{ needs.get_target_env.outputs.target_env }}
