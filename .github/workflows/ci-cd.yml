@@ -82,7 +82,7 @@ jobs:
 #job ini akan selalu di jalankan ketika ada event PR ke branch yg telah di tentukan
   Unit-Test:
     needs: set_target_env
-    if: ${{needs.set_target_env.outputs.status}} != "0"
+    if: needs.set_target_env.outputs.status != '0'
     name: Run tests
     runs-on: ubuntu-latest
     defaults:
@@ -116,7 +116,7 @@ jobs:
 
   #job ini akan selalu di jalankan ketika ada event PR dan merge ke branch yg telah di tentukan
   Build-and-publish-image:
-    if: needs.set_target_env.outputs.status != 0
+    if: needs.set_target_env.outputs.status != '0'
     needs: ["set_target_env", "code-quality", "Unit-Test"]
     name: Build and publish docker image
     environment:
@@ -143,7 +143,7 @@ jobs:
   #job ini akan selalu di jalankan ketika ada event PR dan merge ke branch yg telah di tentukan
   Deploy:
     needs: ["set_target_env", "Build-and-publish-image"]
-    if: needs.set_target_env.outputs.status != 0
+    if: needs.set_target_env.outputs.status != '0'
     name: Deploy apps
     environment:
       name: ${{ needs.set_target_env.outputs.env_app }} 
