@@ -1,12 +1,15 @@
 name: CI AND CD
 
 on:
+  push:
+    branches: ["test", "demo"]
   pull_request:
-    branches: ["demo", "dev"]
+    branches: ["development"]
     types: ["closed"] #Run workflows jika ada event PR lalu close pada branch demo/dev
 
 jobs:
   set_target_env:
+    name: Define Envirorment
     runs-on: ubuntu-latest
     outputs:
       env_app: ${{ steps.set_env.outputs.env_value }}
@@ -15,9 +18,10 @@ jobs:
     steps:
       - id: set_env
         run: |
-          envv=${{ github.ref_name == 'demo' && 'demo' || github.ref_name == 'development' && 'development' || github.ref_name == 'staging-qa' && 'staging' || github.ref_name == 'main' && 'production'  }}
+          envv=${{ github.ref_name == 'development' && 'development' || github.ref_name == 'staging-qa' && 'staging' || github.ref_name == 'main' && 'production'  }}
           version=""
           status=""
+          ##set version
           if [[ "$envv" != "false" ]] && [[ "$envv" != "production" ]]; then
             version=`date +%Y.%m.%d`"-$envv-${GITHUB_SHA::7}"
           elif [[ "$envv" != "false" ]] && [[ "$envv" == "production" ]]; then
@@ -25,17 +29,22 @@ jobs:
           else
             version="false"
           fi
+          ##set status
+          if [[ "$envv" != "false" ]] && [[ "$version" != "false" ]]; then
+            status="true"
+          else
+            status="false"
+          fi
           echo "env_value=$envv" >> "$GITHUB_OUTPUT"
           echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "status=statusnya" >> "$GITHUB_OUTPUT"
+          echo "status=$status" >> "$GITHUB_OUTPUT"
           
-
   # #job ini akan selalu di jalankan ketika ada event PR ke branch yg telah di tentukan
   code-quality: #penamaan job, ini muncul pada graph pipeline
     needs: set_target_env
     name: Scan with sonarcube #Penamaan Jobs, ini muncul pada graph pipeline, penamaan jobs pada bagian ini bisa lebih deskriptif
     #this job will only run if the PR has been merged, not just 'closed'
-    if: github.event.pull_request.merged == true && needs.set_target_env.outputs.env_app != false
+    if: github.event.pull_request.merged == true && needs.set_target_env.outputs.status != false
     runs-on: ubuntu-latest
     env:
       SONAR_EXCLUSIONS: '**/*.html,**/*.phtml,**/*.css,**/*.js'
@@ -63,7 +72,8 @@ jobs:
 #job ini akan selalu di jalankan ketika ada event PR ke branch yg telah di tentukan
   Unit-Test:
     name: Run tests
-    if: github.event.pull_request.merged == true
+    needs: set_target_env
+    if: github.event.pull_request.merged == true && needs.set_target_env.outputs.status != false
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -97,9 +107,8 @@ jobs:
   #job ini akan selalu di jalankan ketika ada event PR dan merge ke branch yg telah di tentukan
   Build-and-publish-image:
     name: Build and publish docker image
-    environment: $APP_ENV
-    needs: ["code-quality", "Unit-Test"]
-    if: github.event.pull_request.merged == true
+    needs: ["set_target_env", "code-quality", "Unit-Test"]
+    if: github.event.pull_request.merged == true && needs.set_target_env.outputs.status != false
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -124,8 +133,8 @@ jobs:
   #job ini akan selalu di jalankan ketika ada event PR dan merge ke branch yg telah di tentukan
   Deploy:
     name: Deploy apps
-    needs: Build-and-publish-image
-    if: github.event.pull_request.merged == true
+    needs: ["set_target_env", "Build-and-publish-image"]
+    if: github.event.pull_request.merged == true && needs.set_target_env.outputs.status != false
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
