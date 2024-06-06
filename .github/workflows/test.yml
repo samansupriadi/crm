@@ -29,12 +29,13 @@ jobs:
         run: |
           env=${{ github.ref_name == 'demo' && 'demo' || github.ref_name == 'development' && 'development' || github.ref_name == 'staging-qa' && 'staging' || github.ref_name == 'main' && 'production'  }}
           version=""
+          status=""
           if [[ "$env" != "false" ]] && [[ "$env" != "production" ]]; then
-            version=`date +%Y.%m.%d`-$env_${GITHUB_SHA}
-          elif [[ "$env" == "ccc" ]]; then
-            version="cccccc"
+            version=`date +%Y.%m.%d`_$env_${GITHUB_SHA::7}
+          elif [[ "$env" != "false" && [[ "$env" == "production" ]] ]]; then
+           version=`date +%Y.%m.%d`_$env_${GITHUB_REF#refs/tags/}
           else
-            version="something else"
+            version="false"
           fi
           echo "env=$env" >> "$GITHUB_OUTPUT"
           echo "version=$version" >> "$GITHUB_OUTPUT"
