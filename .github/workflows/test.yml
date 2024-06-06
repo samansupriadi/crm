@@ -27,9 +27,9 @@ jobs:
       - id: set_env
         run: |
           echo "env=${{ github.ref_name == 'demo' && 'demo' || github.ref_name == 'development' && 'development' || github.ref_name == 'staging-qa' && 'staging' || github.ref_name == 'main' && 'production'  }}" >> "$GITHUB_OUTPUT"
-          echo "version=123" >> "$GITHUB_OUTPUT"
-        # - id: set_version
-      #   run: echo "name=123" >> "$GITHUB_OUTPUT"
+          echo "version=false1234" >> "$GITHUB_OUTPUT"
+          echo "status=$version"
+
   job2:
     runs-on: ubuntu-latest
     needs: set_target_env

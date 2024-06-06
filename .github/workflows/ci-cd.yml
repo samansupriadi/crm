@@ -5,26 +5,24 @@ on:
     branches: ["demo", "dev"]
     types: ["closed"] #Run workflows jika ada event PR lalu close pada branch demo/dev
 
-# env:
-#   APP_ENV: ${{ github.ref_name == 'development' && 'development' || github.ref_name == 'staging-qa' && 'staging' || github.ref_name == 'main' && 'production'  }}
-
 jobs:
   set_target_env:
     runs-on: ubuntu-latest
     outputs:
-      env_app: ${{ steps.set_env.outputs.name }}
-      versions_app: ${{ steps.set_version.outputs.name }}
+      env_app: ${{ steps.set_env.outputs.env }}
+      versions_app: ${{ steps.set_env.outputs.version }}
     steps:
       - id: set_env
-        run: echo "name=hello" >> "$GITHUB_OUTPUT"
-      - id: set_version
-        run: echo "name=123" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "env=${{ github.ref_name == 'development' && 'development' || github.ref_name == 'staging-qa' && 'staging' || github.ref_name == 'main' && 'production'  }}" >> "$GITHUB_OUTPUT"
+          echo "version=123" >> "$GITHUB_OUTPUT"
 
   # #job ini akan selalu di jalankan ketika ada event PR ke branch yg telah di tentukan
   code-quality: #penamaan job, ini muncul pada graph pipeline
+    needs: set_target_env
     name: Scan with sonarcube #Penamaan Jobs, ini muncul pada graph pipeline, penamaan jobs pada bagian ini bisa lebih deskriptif
     #this job will only run if the PR has been merged, not just 'closed'
-    if: github.event.pull_request.merged == true
+    if: github.event.pull_request.merged == true && needs.set_target_env.outputs.env_app != false
     runs-on: ubuntu-latest
     env:
       SONAR_EXCLUSIONS: '**/*.html,**/*.phtml,**/*.css,**/*.js'
