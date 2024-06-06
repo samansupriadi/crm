@@ -1,8 +1,10 @@
 name: CI AND CD
 
 on:
+  push:
+    branches: ["test"]
   pull_request:
-    branches: ["demo", "dev"]
+    branches: ["demo", "development"]
     types: ["closed"] #Run workflows jika ada event PR lalu close pada branch demo/dev
 
 jobs:
@@ -15,9 +17,10 @@ jobs:
     steps:
       - id: set_env
         run: |
-          envv=${{ github.ref_name == 'demo' && 'demo' || github.ref_name == 'development' && 'development' || github.ref_name == 'staging-qa' && 'staging' || github.ref_name == 'main' && 'production'  }}
+          envv=${{ github.ref_name == 'development' && 'development' || github.ref_name == 'staging-qa' && 'staging' || github.ref_name == 'main' && 'production'  }}
           version=""
           status=""
+          ##set version
           if [[ "$envv" != "false" ]] && [[ "$envv" != "production" ]]; then
             version=`date +%Y.%m.%d`"-$envv-${GITHUB_SHA::7}"
           elif [[ "$envv" != "false" ]] && [[ "$envv" == "production" ]]; then
@@ -25,11 +28,16 @@ jobs:
           else
             version="false"
           fi
+          ##set status
+          if [[ "$envv" != "false" ]] && [[ "$version" != "false" ]]; then
+            status="true"
+          else
+            status="false"
+          fi
           echo "env_value=$envv" >> "$GITHUB_OUTPUT"
           echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "status=statusnya" >> "$GITHUB_OUTPUT"
+          echo "status=$status" >> "$GITHUB_OUTPUT"
           
-
   # #job ini akan selalu di jalankan ketika ada event PR ke branch yg telah di tentukan
   code-quality: #penamaan job, ini muncul pada graph pipeline
     needs: set_target_env
