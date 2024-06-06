@@ -5,10 +5,23 @@ on:
     branches: ["demo", "dev"]
     types: ["closed"] #Run workflows jika ada event PR lalu close pada branch demo/dev
 
-env:
-  APP_ENV: ${{ github.ref_name == 'demo' && 'demo' || github.ref_name == 'development' && 'development' || github.ref_name == 'staging-qa' && 'staging' || github.ref_name == 'main' && 'production'  }}
+# env:
+#   APP_ENV: ${{ github.ref_name == 'demo' && 'demo' || github.ref_name == 'development' && 'development' || github.ref_name == 'staging-qa' && 'staging' || github.ref_name == 'main' && 'production'  }}
 
 jobs:
+  get_target_env:
+    name: 'Get target env'
+    runs-on: ubuntu-latest
+    outputs:
+      target_env: ${{ steps.set_result.outputs.target_env }}
+    steps:
+      - name: 'Set env based on branch'
+        id: set_results
+        shell: bash
+        run: |
+          echo "Branch: ${{ github.ref_name }}"
+          echo "target_env=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+
   # #job ini akan selalu di jalankan ketika ada event PR ke branch yg telah di tentukan
   code-quality: #penamaan job, ini muncul pada graph pipeline
     name: Scan with sonarcube #Penamaan Jobs, ini muncul pada graph pipeline, penamaan jobs pada bagian ini bisa lebih deskriptif

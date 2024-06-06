@@ -23,6 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       target_env: ${{ steps.set_result.outputs.target_env }}
+      version_app: ${{ steps.set_result.outputs.version_app }}
     steps:
       - name: 'Set env based on branch'
         id: set_results
@@ -30,6 +31,7 @@ jobs:
         run: |
           echo "Branch: ${{ github.ref_name }}"
           echo "target_env=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          echo "version_app=123" >> $GITHUB_OUTPUT
 
   automated_job:
     name: 'My Automated Job'
@@ -40,4 +42,4 @@ jobs:
     steps:
       - name: 'Print env name'
         shell: bash
-        run: echo 'Using ${{ github.ref_name }}'
+        run: echo 'Using ${{ needs.get_target_env.outputs.target_env }} '
