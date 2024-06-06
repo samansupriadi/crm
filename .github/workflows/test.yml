@@ -27,13 +27,13 @@ jobs:
     steps:
       - id: set_env
         run: |
-          envv=${{ github.ref_name == 'demo' && 'demo' || github.ref_name == 'development' && 'development' || github.ref_name == 'staging-qa' && 'staging' || github.ref_name == 'main' && 'production'  }}
+          export envv=${{ github.ref_name == 'demo' && 'demo' || github.ref_name == 'development' && 'development' || github.ref_name == 'staging-qa' && 'staging' || github.ref_name == 'main' && 'production'  }}
           version=""
           status=""
           if [[ "$envv" != "false" ]] && [[ "$envv" != "production" ]]; then
-            version=`date +%Y.%m.%d`_"$envv"
+            version=$envv
           elif [[ "$envv" != "false" ]] && [[ "$envv" == "production" ]]; then
-            version=`date +%Y.%m.%d`_"$envv"
+            version=$envv
           else
             version="false"
           fi
