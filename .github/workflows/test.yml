@@ -19,16 +19,15 @@ on:
 
 jobs:
   set_target_env:
-    name: "Define which environment will use"
     runs-on: ubuntu-latest
     outputs:
-      output1: ${{ steps.set_env.outputs.test }}
-      output2: ${{ steps.set_version.outputs.test }}
+      output1: ${{ steps.set_env.outputs.name }}
+      output2: ${{ steps.set_version.outputs.name }}
     steps:
       - id: set_env
-        run: echo "test=hello" >> "$GITHUB_OUTPUT"
+        run: echo "name=hello" >> "$GITHUB_OUTPUT"
       - id: set_version
-        run: echo "test=" >> "$GITHUB_OUTPUT"
+        run: echo "name=123" >> "$GITHUB_OUTPUT"
   job2:
     runs-on: ubuntu-latest
     needs: set_target_env

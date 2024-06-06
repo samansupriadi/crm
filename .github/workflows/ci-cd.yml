@@ -6,7 +6,7 @@ on:
     types: ["closed"] #Run workflows jika ada event PR lalu close pada branch demo/dev
 
 env:
-  APP_ENV: ${{ github.ref_name == 'demo' && 'demo' || github.ref_name == 'development' && 'development' || github.ref_name == 'staging-qa' && 'staging' || github.ref_name == 'main' && 'production'  }}
+  APP_ENV: ${{ github.ref_name == 'development' && 'development' || github.ref_name == 'staging-qa' && 'staging' || github.ref_name == 'main' && 'production'  }}
 
 jobs:
   # #job ini akan selalu di jalankan ketika ada event PR ke branch yg telah di tentukan
