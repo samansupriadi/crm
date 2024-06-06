@@ -44,11 +44,9 @@ jobs:
           else
             status="false"
           fi
-
           echo "env_value=$envv" >> "$GITHUB_OUTPUT"
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "status=$status" >> "$GITHUB_OUTPUT"
-
   job2:
     runs-on: ubuntu-latest
     needs: set_target_env
