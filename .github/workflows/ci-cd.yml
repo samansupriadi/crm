@@ -24,15 +24,22 @@ jobs:
           status=0
 
           ##set version
-          if [[ "$envv" -ne 0 ]] && [[ "$envv" != "production" ]]; then
+          if [[ "$envv" -ne 0 ]] && [[ "$envv" != "production" ]]
+          then
             version=`date +%Y.%m.%d`"-$envv-${GITHUB_SHA::7}"
-          elif [[ "$envv" -ne 0 ]] && [[ "$envv" == "production" ]]; then
+          elif [[ "$envv" -ne 0 ]] && [[ "$envv" == "production" ]]
+          then
             version=`date +%Y.%m.%d`"-$envv-${GITHUB_REF#refs/tags/}}"
+          else
+            exit 1
           fi
 
           ##set status
-          if [[ "$envv" -ne 0 ]] && [[ "$version" -ne 0 ]]; then
+          if [[ "$envv" -ne 0 ]] && [[ "$version" -ne 0 ]]
+          then
             status=1
+          else
+            exit 1
           fi
           
           echo "env_value=$envv" >> "$GITHUB_OUTPUT"
@@ -43,7 +50,7 @@ jobs:
   # #job ini akan selalu di jalankan ketika ada event PR ke branch yg telah di tentukan
   code-quality: #penamaan job, ini muncul pada graph pipeline
     needs: set_target_env
-    if: ${{needs.set_target_env.outputs.status}} != 0
+    if: ${{ success() }}
     name: Scan with sonarcube #Penamaan Jobs, ini muncul pada graph pipeline, penamaan jobs pada bagian ini bisa lebih deskriptif
     #this job will only run if the PR has been merged, not just 'closed'
     runs-on: ubuntu-latest
