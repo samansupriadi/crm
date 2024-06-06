@@ -25,7 +25,7 @@ jobs:
       output2: ${{ steps.set_version.outputs.name }}
     steps:
       - id: set_env
-        run: echo "name=${{ github.ref_name == 'development' && 'development' || github.ref_name == 'staging-qa' && 'staging' || github.ref_name == 'main' && 'production'  }}" >> "$GITHUB_OUTPUT"
+        run: echo "name=${{ github.ref_name == 'demo' && 'demo' || github.ref_name == 'development' && 'development' || github.ref_name == 'staging-qa' && 'staging' || github.ref_name == 'main' && 'production'  }}" >> "$GITHUB_OUTPUT"
       - id: set_version
         run: echo "name=123" >> "$GITHUB_OUTPUT"
   job2:
