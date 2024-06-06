@@ -27,7 +27,7 @@ jobs:
     steps:
       - id: set_env
         run: |
-          export envv=${{ github.ref_name == 'demo' && 'demo' || github.ref_name == 'development' && 'development' || github.ref_name == 'staging-qa' && 'staging' || github.ref_name == 'main' && 'production'  }}
+          envv=${{ github.ref_name == 'demo' && 'demo' || github.ref_name == 'development' && 'development' || github.ref_name == 'staging-qa' && 'staging' || github.ref_name == 'main' && 'production'  }}
           version=""
           status=""
           if [[ "$envv" != "false" ]] && [[ "$envv" != "production" ]]; then
