@@ -30,7 +30,7 @@ jobs:
           echo "env=${{ github.ref_name == 'demo' && 'demo' || github.ref_name == 'development' && 'development' || github.ref_name == 'staging-qa' && 'staging' || github.ref_name == 'main' && 'production'  }}" >> "$GITHUB_OUTPUT"
           version=""
           if [[ "$env" != "false" ]] && [[ "$env" != "production" ]]; then
-            version=`date +%Y.%m.%d`-${ENV}
+            version=`date +%Y.%m.%d`-${env}
           elif [[ "$env" == "ccc" ]]; then
             version="cccccc"
           else
@@ -46,5 +46,5 @@ jobs:
       - env:
           OUTPUT1: ${{needs.set_target_env.outputs.env_app}}
           OUTPUT2: ${{needs.set_target_env.outputs.versions_app}}
-          OUTPUT3: ${{needs.set_target_env.outputs.versions_app}}
+          OUTPUT3: ${{needs.set_target_env.outputs.status}}
         run: echo "$OUTPUT1 $OUTPUT2 $OUTPUT3"
