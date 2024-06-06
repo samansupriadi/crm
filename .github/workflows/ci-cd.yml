@@ -4,7 +4,7 @@ on:
   push:
     branches: ["test"]
   pull_request:
-    branches: ["development", "demo"]
+    branches: ["development", "demo", "staging", "main"]
     types: ["closed"] #Run workflows jika ada event PR lalu close pada branch demo/dev
 
 jobs:
