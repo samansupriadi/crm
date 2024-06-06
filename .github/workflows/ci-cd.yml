@@ -147,7 +147,7 @@ jobs:
           token: ${{ secrets.REPO_ACCESS_TOKEN }}
           repository: ${{ vars.REPO_OPS }}
           event-type: my-event
-          client-payload: '{"environment": "xxxxxxx", "version": "yyyyyyyyy"}'          
+          client-payload: '{"environment": ${{ needs.set_target_env.outputs.env_app }}, "version": "xxxxxxxx" }'          
 
   # #job ini akan selalu di jalankan ketika ada event PR dan merge ke branch yg telah di tentukan
   # zap_scan:
