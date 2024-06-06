@@ -40,6 +40,6 @@ jobs:
     environment:
       name: ${{ needs.get_target_env.outputs.target_env }}
     steps:
-      - name: 'Print env name'
+      - name: 'Print env name ${{ needs.get_target_env.outputs.target_env }}'
         shell: bash
         run: echo "Using ${{ needs.get_target_env.outputs.target_env }}"
