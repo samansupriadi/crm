@@ -36,7 +36,7 @@ jobs:
           else
             version="something else"
           fi
-          echo "$version" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "status=statusnya" >> "$GITHUB_OUTPUT"
 
   job2:
