@@ -28,7 +28,7 @@ jobs:
       - id: set_env
         run: echo "test=hello" >> "$GITHUB_OUTPUT"
       - id: set_version
-        run: echo "test=world" >> "$GITHUB_OUTPUT"
+        run: echo "test=" >> "$GITHUB_OUTPUT"
   job2:
     runs-on: ubuntu-latest
     needs: set_target_env
