@@ -4,7 +4,7 @@ on:
     # push:
     #   branches :  ["demo", "dev", "test"]
     pull_request:
-      branches: ["demo", "dev", "test"]
+      branches: ["demo", "dev", "test", "development"]
       types: ["closed"]
 
 # env:
