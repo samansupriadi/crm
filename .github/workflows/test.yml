@@ -27,15 +27,16 @@ jobs:
     steps:
       - id: set_env
         run: |
-          echo "env=${{ github.ref_name == 'demo' && 'demo' || github.ref_name == 'development' && 'development' || github.ref_name == 'staging-qa' && 'staging' || github.ref_name == 'main' && 'production'  }}" >> "$GITHUB_OUTPUT"
+          env=${{ github.ref_name == 'demo' && 'demo' || github.ref_name == 'development' && 'development' || github.ref_name == 'staging-qa' && 'staging' || github.ref_name == 'main' && 'production'  }}
           version=""
           if [[ "$env" != "false" ]] && [[ "$env" != "production" ]]; then
-            version=`date +%Y.%m.%d`-$env-${GITHUB_SHA::7}
+            version=`date +%Y.%m.%d`-$env_${GITHUB_SHA}
           elif [[ "$env" == "ccc" ]]; then
             version="cccccc"
           else
             version="something else"
           fi
+          echo "env=$env" >> "$GITHUB_OUTPUT"
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "status=statusnya" >> "$GITHUB_OUTPUT"
 
