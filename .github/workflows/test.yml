@@ -31,9 +31,9 @@ jobs:
           version=""
           status=""
           if [[ "$envv" != "false" ]] && [[ "$envv" != "production" ]]; then
-            version="$envv-${GITHUB_SHA::7}"
+            version=`date +%Y.%m.%d`-"$envv-${GITHUB_SHA::7}"
           elif [[ "$envv" != "false" ]] && [[ "$envv" == "production" ]]; then
-            version="$envv-${GITHUB_SHA::7}"
+            version=`date +%Y.%m.%d`-"$envv-${GITHUB_SHA::7}"
           else
             version="false"
           fi
