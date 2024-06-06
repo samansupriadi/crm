@@ -30,6 +30,7 @@ jobs:
           envv=${{ github.ref_name == 'demo' && 'demo' || github.ref_name == 'development' && 'development' || github.ref_name == 'staging-qa' && 'staging' || github.ref_name == 'main' && 'production'  }}
           version=""
           status=""
+          ##set version
           if [[ "$envv" != "false" ]] && [[ "$envv" != "production" ]]; then
             version=`date +%Y.%m.%d`"-$envv-${GITHUB_SHA::7}"
           elif [[ "$envv" != "false" ]] && [[ "$envv" == "production" ]]; then
@@ -37,9 +38,16 @@ jobs:
           else
             version="false"
           fi
+          ##set status
+          if [[ "$envv" != "" ]] && [[ "$version" != "" ]]; then
+            status="true"
+          else
+            status="false"
+          fi
+
           echo "env_value=$envv" >> "$GITHUB_OUTPUT"
           echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "status=statusnya" >> "$GITHUB_OUTPUT"
+          echo "status=$status" >> "$GITHUB_OUTPUT"
 
   job2:
     runs-on: ubuntu-latest

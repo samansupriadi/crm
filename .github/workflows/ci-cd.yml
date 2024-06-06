@@ -9,13 +9,26 @@ jobs:
   set_target_env:
     runs-on: ubuntu-latest
     outputs:
-      env_app: ${{ steps.set_env.outputs.env }}
+      env_app: ${{ steps.set_env.outputs.env_value }}
       versions_app: ${{ steps.set_env.outputs.version }}
+      status: ${{ steps.set_env.outputs.status }}
     steps:
       - id: set_env
         run: |
-          echo "env=${{ github.ref_name == 'development' && 'development' || github.ref_name == 'staging-qa' && 'staging' || github.ref_name == 'main' && 'production'  }}" >> "$GITHUB_OUTPUT"
-          echo "version=123" >> "$GITHUB_OUTPUT"
+          envv=${{ github.ref_name == 'demo' && 'demo' || github.ref_name == 'development' && 'development' || github.ref_name == 'staging-qa' && 'staging' || github.ref_name == 'main' && 'production'  }}
+          version=""
+          status=""
+          if [[ "$envv" != "false" ]] && [[ "$envv" != "production" ]]; then
+            version=`date +%Y.%m.%d`"-$envv-${GITHUB_SHA::7}"
+          elif [[ "$envv" != "false" ]] && [[ "$envv" == "production" ]]; then
+            version=`date +%Y.%m.%d`"-$envv-${GITHUB_REF#refs/tags/}}"
+          else
+            version="false"
+          fi
+          echo "env_value=$envv" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "status=statusnya" >> "$GITHUB_OUTPUT"
+          
 
   # #job ini akan selalu di jalankan ketika ada event PR ke branch yg telah di tentukan
   code-quality: #penamaan job, ini muncul pada graph pipeline
