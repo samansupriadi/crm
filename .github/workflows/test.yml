@@ -23,6 +23,7 @@ jobs:
     outputs:
       env_app: ${{ steps.set_env.outputs.env }}
       versions_app: ${{ steps.set_env.outputs.version }}
+      status: ${{ steps.set_env.outputs.status }}
     steps:
       - id: set_env
         run: |
@@ -37,4 +38,5 @@ jobs:
       - env:
           OUTPUT1: ${{needs.set_target_env.outputs.env_app}}
           OUTPUT2: ${{needs.set_target_env.outputs.versions_app}}
-        run: echo "$OUTPUT1 $OUTPUT2"
+          OUTPUT3: ${{needs.set_target_env.outputs.versions_app}}
+        run: echo "$OUTPUT1 $OUTPUT2 $OUTPUT3"
