@@ -2,9 +2,9 @@ name: CI AND CD
 
 on:
   push:
-    branches: ["test"]
+    branches: ["test", "demo"]
   pull_request:
-    branches: ["demo", "development"]
+    branches: ["development"]
     types: ["closed"] #Run workflows jika ada event PR lalu close pada branch demo/dev
 
 jobs:
@@ -43,7 +43,7 @@ jobs:
     needs: set_target_env
     name: Scan with sonarcube #Penamaan Jobs, ini muncul pada graph pipeline, penamaan jobs pada bagian ini bisa lebih deskriptif
     #this job will only run if the PR has been merged, not just 'closed'
-    if: github.event.pull_request.merged == true && needs.set_target_env.outputs.env_app != false
+    if: github.event.pull_request.merged == true && needs.set_target_env.outputs.status != false
     runs-on: ubuntu-latest
     env:
       SONAR_EXCLUSIONS: '**/*.html,**/*.phtml,**/*.css,**/*.js'
