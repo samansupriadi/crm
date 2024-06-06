@@ -33,7 +33,7 @@ jobs:
           if [[ "$env" != "false" ]] && [[ "$env" != "production" ]]; then
             version=`date +%Y.%m.%d`_$env_${GITHUB_SHA::7}
           elif [[ "$env" != "false" && [[ "$env" == "production" ]]; then
-           version=`date +%Y.%m.%d`_$env_${GITHUB_REF#refs/tags/}
+           version=`date +%Y.%m.%d`_"$env"_"${GITHUB_REF#refs/tags/}"
           else
             version="false"
           fi
