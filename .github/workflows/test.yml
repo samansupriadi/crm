@@ -27,7 +27,7 @@ jobs:
     steps:
       - id: set_env
         run: |
-          envv=${{ github.ref_name == 'demo' && 'demo' || github.ref_name == 'development' && 'development' || github.ref_name == 'staging-qa' && 'staging' || github.ref_name == 'main' && 'production'  }}
+          envv=${{ github.ref_name == 'development' && 'development' || github.ref_name == 'staging-qa' && 'staging' || github.ref_name == 'main' && 'production'  }}
           version=""
           status=""
           ##set version
@@ -39,7 +39,7 @@ jobs:
             version="false"
           fi
           ##set status
-          if [[ "$envv" != "" ]] && [[ "$version" != "" ]]; then
+          if [[ "$envv" != "false" ]] && [[ "$version" != "false" ]]; then
             status="true"
           else
             status="false"
