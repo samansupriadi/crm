@@ -27,20 +27,19 @@ jobs:
     steps:
       - id: set_env
         run: |
-          envv=${{ github.ref_name == 'demo' && 'demo' || github.ref_name == 'development' && 'development' || github.ref_name == 'staging-qa' && 'staging' || github.ref_name == 'main' && 'production'  }}
+          envv=$(if [[ "${{ github.ref_name }}" == "demo" ]]; then echo "demo"; elif [[ "${{ github.ref_name }}" == "development" ]]; then echo "development"; elif [[ "${{ github.ref_name }}" == "staging-qa" ]]; then echo "staging"; elif [[ "${{ github.ref_name }}" == "main" ]]; then echo "production"; else echo "false"; fi)
           version=""
           status=""
           if [[ "$envv" != "false" ]] && [[ "$envv" != "production" ]]; then
-            version=`date +%Y.%m.%d`_$envv_${GITHUB_SHA::7}
+            version=$(date +%Y.%m.%d)_$envv_${GITHUB_SHA::7}
           elif [[ "$envv" != "false" ]] && [[ "$envv" == "production" ]]; then
-            version=`date +%Y.%m.%d`_$envv_${GITHUB_REF#refs/tags/}
+            version=$(date +%Y.%m.%d)_$envv_${GITHUB_REF#refs/tags/}
           else
             version="false"
           fi
-          echo "env_value=$envv" >> "$GITHUB_OUTPUT"
+          echo "env=$envv" >> "$GITHUB_OUTPUT"
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "status=statusnya" >> "$GITHUB_OUTPUT"
-
   job2:
     runs-on: ubuntu-latest
     needs: set_target_env
