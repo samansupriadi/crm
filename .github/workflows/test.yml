@@ -1,11 +1,11 @@
 name: Greeting on variable day
 
 on:
-    push:
-      branches :  ["demo", "dev", "test"]
-    # pull_request:
-    #   branches: ["demo", "dev", "test"]
-    #   types: ["closed"]
+    # push:
+    #   branches :  ["demo", "dev", "test"]
+    pull_request:
+      branches: ["demo", "dev", "test"]
+      types: ["closed"]
 
 # env:
 #     APP_ENV: ${{ github.ref_name == 'demo' && 'demo' || github.ref_name == 'dev' && 'development' || github.ref_name == 'staging-qa' && 'staging' || github.ref_name == 'main' && 'production'  }}
