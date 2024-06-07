@@ -43,7 +43,7 @@ jobs:
   # #job ini akan selalu di jalankan ketika ada event PR ke branch yg telah di tentukan
   code-quality: #penamaan job, ini muncul pada graph pipeline
     needs: set_target_env
-    if: ${{ needs.set_target_env.outputs.status }} != "0"
+    if: needs.set_target_env.outputs.status
     name: Scan with sonarcube #Penamaan Jobs, ini muncul pada graph pipeline, penamaan jobs pada bagian ini bisa lebih deskriptif
     #this job will only run if the PR has been merged, not just 'closed'
     runs-on: ubuntu-latest
