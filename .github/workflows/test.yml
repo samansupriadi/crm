@@ -1,0 +1,58 @@
+name: Greeting on variable day
+
+on:
+    # push:
+    #   branches :  ["demo", "dev", "test"]
+    pull_request:
+      branches: ["demo", "dev", "test", "development"]
+      types: ["closed"]
+
+# env:
+#     APP_ENV: ${{ github.ref_name == 'demo' && 'demo' || github.ref_name == 'dev' && 'development' || github.ref_name == 'staging-qa' && 'staging' || github.ref_name == 'main' && 'production'  }}
+
+# jobs:
+#   greeting_job:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: "Say Hello Mona it's Monday ${{ env.APP_ENV }} "
+#         run: echo "lalalal $APP_ENV"
+
+jobs:
+  set_target_env:
+    runs-on: ubuntu-latest
+    outputs:
+      env_app: ${{ steps.set_env.outputs.env_value }}
+      versions_app: ${{ steps.set_env.outputs.version }}
+      status: ${{ steps.set_env.outputs.status }}
+    steps:
+      - id: set_env
+        run: |
+          envv=${{ github.ref_name == 'development' && 'development' || github.ref_name == 'staging-qa' && 'staging' || github.ref_name == 'main' && 'production'  }}
+          version=""
+          status=""
+          ##set version
+          if [[ "$envv" != "false" ]] && [[ "$envv" != "production" ]]; then
+            version=`date +%Y.%m.%d`"-$envv-${GITHUB_SHA::7}"
+          elif [[ "$envv" != "false" ]] && [[ "$envv" == "production" ]]; then
+            version=`date +%Y.%m.%d`"-$envv-${GITHUB_REF#refs/tags/}}"
+          else
+            version="false"
+          fi
+          ##set status
+          if [[ "$envv" != "false" ]] && [[ "$version" != "false" ]]; then
+            status="true"
+          else
+            status="false"
+          fi
+          echo "env_value=$envv" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+  job2:
+    runs-on: ubuntu-latest
+    needs: set_target_env
+    steps:
+      - env:
+          OUTPUT1: ${{needs.set_target_env.outputs.env_app}}
+          OUTPUT2: ${{needs.set_target_env.outputs.versions_app}}
+          OUTPUT3: ${{needs.set_target_env.outputs.status}}
+        run: echo "$OUTPUT1 $OUTPUT2 $OUTPUT3"
