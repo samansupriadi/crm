@@ -160,8 +160,8 @@ jobs:
       - name: Cek Status Deploying
         uses: convictional/trigger-workflow-and-wait@v1.6.1
         with:
-          owner: ${{ github.repository_owner }}
-          repo: ${{ vars.REPO_OPS }}
+          owner: samansenju
+          repo: crm-ops
           github_token: ${{ secrets.REPO_ACCESS_TOKEN }}
           workflow_file_name: blank.yml
   
