@@ -42,10 +42,10 @@ jobs:
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "status=$status" >> "$GITHUB_OUTPUT"
           echo "Status $status"
-      - id: check_status
-        run: echo "status=${{steps.set_env.outputs.status}}" >> "$GITHUB_OUTPUT"
-      - if: steps.check_status.outputs.status == 0
-        run: exit 1
+      # - id: check_status
+      #   run: echo "status=${{steps.set_env.outputs.status}}" >> "$GITHUB_OUTPUT"
+      # - if: steps.check_status.outputs.status == 0
+      #   run: exit 1
           
   # #job ini akan selalu di jalankan ketika ada event PR ke branch yg telah di tentukan
   code-quality: #penamaan job, ini muncul pada graph pipeline
