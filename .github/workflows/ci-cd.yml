@@ -4,8 +4,8 @@ on:
   push:
     branches: ["test"]
   pull_request:
-    branches: ["development", "demo"]
-    types: ["closed"] #Run workflows jika ada event PR lalu close pada branch demo/dev
+    branches: ["development", "demo", "staging", "main"]
+    types: ["closed"] #Run workflows jika ada event PR lalu close pada branch
 
 jobs:
   set_target_env:
@@ -29,7 +29,8 @@ jobs:
             version=`date +%Y.%m.%d`"-$envv-${GITHUB_SHA::7}"
           elif [[ "$envv" != "0" ]] && [[ "$envv" == "production" ]]
           then
-            version=`date +%Y.%m.%d`"-$envv-${GITHUB_REF#refs/tags/}}"
+            #version=`date +%Y.%m.%d`"-$envv-${GITHUB_REF#refs/tags/}}"
+            version=`date +%Y.%m.%d`"-$envv-${GITHUB_SHA::7}"
           fi
 
           ## set status
@@ -154,7 +155,7 @@ jobs:
           token: ${{ secrets.REPO_ACCESS_TOKEN }}
           repository: ${{ vars.REPO_OPS }}
           event-type: ${{ needs.set_target_env.outputs.env_app }}
-          client-payload: '{"environment": "${{ needs.set_target_env.outputs.env_app }}", "version": "${{ needs.set_target_env.outputs.versions_app }}" }'          
+          client-payload: '{"environment": "${{ needs.set_target_env.outputs.env_app }}", "version": "${{ needs.set_target_env.outputs.versions_app }}", "APP_NAME": "${{ github.event.repository.name }}-services" }'          
 
   # #job ini akan selalu di jalankan ketika ada event PR dan merge ke branch yg telah di tentukan
   # zap_scan:
