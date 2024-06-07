@@ -10,7 +10,7 @@ on:
 jobs:
   set_target_env:
     if: github.event.pull_request.merged
-    name: Define Envirorment
+    name: Define Environment
     runs-on: ubuntu-latest
     outputs:
       env_app: ${{ steps.set_env.outputs.env_value }}
@@ -19,21 +19,21 @@ jobs:
     steps:
       - id: set_env
         run: |
-          envv=${{ github.ref_name == 'development' && 'development' || github.ref_name == 'staging-qa' && 'staging' || github.ref_name == 'main' && 'production' || 0  }}
+          envv=${{ github.ref_name == 'development' && 'development' || github.ref_name == 'staging-qa' && 'staging' || github.ref_name == 'main' && 'production' || 0 }}
           version=0
           status=0
 
-          ##set version
-          if [[ "$envv" -ne 0 ]] && [[ "$envv" != "production" ]]
+          ## set version
+          if [[ "$envv" != "0" ]] && [[ "$envv" != "production" ]]
           then
             version=`date +%Y.%m.%d`"-$envv-${GITHUB_SHA::7}"
-          elif [[ "$envv" -ne 0 ]] && [[ "$envv" == "production" ]]
+          elif [[ "$envv" != "0" ]] && [[ "$envv" == "production" ]]
           then
             version=`date +%Y.%m.%d`"-$envv-${GITHUB_REF#refs/tags/}}"
           fi
 
-          ##set status
-          if [[ "$envv" -ne 0 ]] && [[ "$version" -ne 0 ]]
+          ## set status
+          if [[ "$envv" != "0" ]] && [[ "$version" != "0" ]]
           then
             status=1
           fi
@@ -42,27 +42,21 @@ jobs:
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "status=$status" >> "$GITHUB_OUTPUT"
           echo "Status $status"
-      # - id: check_status
-      #   run: echo "status=${{steps.set_env.outputs.status}}" >> "$GITHUB_OUTPUT"
-      # - if: steps.check_status.outputs.status == 0
-      #   run: exit 1
           
-  # #job ini akan selalu di jalankan ketika ada event PR ke branch yg telah di tentukan
-  code-quality: #penamaan job, ini muncul pada graph pipeline
+  code-quality:
     needs: set_target_env
-    if: needs.set_target_env.outputs.status != '0'
-    name: Scan with sonarcube #Penamaan Jobs, ini muncul pada graph pipeline, penamaan jobs pada bagian ini bisa lebih deskriptif
-    #this job will only run if the PR has been merged, not just 'closed'
+    if: needs.set_target_env.outputs.status != '0' # Kondisi untuk memeriksa status
+    name: Scan with SonarQube
     runs-on: ubuntu-latest
     env:
       SONAR_EXCLUSIONS: '**/*.html,**/*.phtml,**/*.css,**/*.js'
       SONAR_SOURCES: src
-    continue-on-error: true #lanjut ke step berikut nya meskipun step ini gagal / error
+    continue-on-error: true
     steps:
       - name: test
-        run: echo ${{needs.set_target_env.outputs.status}}
-      - name: Checkout Repository #penamaan step, ketika salah satu job pipeline di klik maka muncul detail nya
-        uses: actions/checkout@v4 #memastikan untuk checkout ke branch dimana workflow tertriger saat ini, misal saat ini workflow nya tertriger pada saat push ke demo, maka memastian bahwa sekrang branch yang aktif adalah demo
+        run: echo ${{ needs.set_target_env.outputs.status }}
+      - name: Checkout Repository
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: SonarQube Scan
@@ -78,6 +72,7 @@ jobs:
             -Dsonar.sources=${{ env.SONAR_SOURCES }}
             -Dsonar.qualitygate.wait=true
             -Dsonar.qualitygate.timeout=900
+
 
 #job ini akan selalu di jalankan ketika ada event PR ke branch yg telah di tentukan
   Unit-Test:
