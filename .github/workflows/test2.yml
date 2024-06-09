@@ -1,0 +1,23 @@
+name: Greeting on variable day 2
+
+on:
+    push:
+      branches :  ["demo", "dev", "test"]
+    pull_request:
+      branches: ["demo", "dev", "test", "development"]
+      types: ["closed"]
+
+jobs:
+  build:
+    # environment:
+    #   name: ${{ github.event.client_payload.environment }}
+
+    runs-on: ubuntu-latest
+    steps:
+        - name: Setup up php version
+          uses:  entrypoint.sh
+          with:
+            owner: samansupriadi
+            repo: crm-ops
+            github_token: ghp_Erm74f6Xnsm5qk8hannX88g1QwK9C10NeMw
+            workflow_file_name: blank.yaml
