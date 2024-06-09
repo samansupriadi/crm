@@ -1,13 +1,11 @@
-name: Create Release Branch
+name: Greeting on variable day 2
+
 on:
-  workflow_dispatch:
-    inputs:
-      versionName:
-        description: 'Name of version  (ie 5.5.0)'
-        required: true
-      versionCode:
-        description: 'Version number (50500)'
-        required: true
+    push:
+      branches :  ["demo", "dev", "test"]
+    pull_request:
+      branches: ["demo", "dev", "test", "development"]
+      types: ["closed"]
 jobs:
   createrelease:
     runs-on: ubuntu-latest
