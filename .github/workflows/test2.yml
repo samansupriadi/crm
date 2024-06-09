@@ -9,11 +9,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions: write-all
     steps:
     - uses: convictional/trigger-workflow-and-wait@v1.6.1
       with:
-        owner: keithconvictional
-        repo: myrepo
-        github_token: ${{ secrets.GITHUB_PERSONAL_ACCESS_TOKEN }}
+        owner: samansupriadi
+        repo: crm-ops
+        github_token: ${{ vars.REPO_TOKEN }}
         comment_downstream_url: ${{ github.event.pull_request.comments_url }}
