@@ -16,4 +16,4 @@ jobs:
         
       - name: Run entrypoint.sh
         run: |
-          bash entrypoint.sh owner=samansupriadi repo=crm-ops github_token=ghp_Erm74f6Xnsm5qk8hannX88g1QwK9C10NeMw workflow_file_name=blank.yaml
+          bash entrypoint.sh owner="samansupriadi" repo="crm-ops" github_token="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" workflow_file_name="blank.yaml"
