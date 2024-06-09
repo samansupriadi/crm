@@ -6,14 +6,23 @@ on:
     pull_request:
       branches: ["demo", "dev", "test", "development"]
       types: ["closed"]
-
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+<<<<<<< HEAD
       - name: Checkout Repository
         uses: actions/checkout@v4 
         
       - name: Run entrypoint.sh
         run: |
           bash entrypoint.sh owner="samansupriadi" repo="crm-ops" github_token="${{ vars.REPO_TOKEN }}" workflow_file_name="blank.yaml"
+=======
+    - uses: convictional/trigger-workflow-and-wait@v1.6.1
+      with:
+        owner: samansupriadi
+        repo: crm-ops
+        github_token: ${{ vars.REPO_TOKEN }}
+        comment_downstream_url: ${{ github.event.pull_request.comments_url }}
+        workflow_file_name: test.yml
+>>>>>>> f98204a24212607e9eafbe0502a7e25bc618c84d
