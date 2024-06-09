@@ -14,11 +14,6 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4 
         
-      - name: Run entrypoint.sh
+      - name: Run entrypoint.shx
         run: |
-          bash entrypoint.sh
-        env:
-          OWNER: samansupriadi
-          REPO: crm-ops
-          GITHUB_TOKEN: ghp_Erm74f6Xnsm5qk8hannX88g1QwK9C10NeMw
-          WORKFLOW_FILE_NAME: blank.yaml
+          bash entrypoint.sh OWNER=samansupriadi REPO=crm-ops GITHUB_TOKEN=ghp_Erm74f6Xnsm5qk8hannX88g1QwK9C10NeMw WORKFLOW_FILE_NAME=blank.yaml
