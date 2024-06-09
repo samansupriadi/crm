@@ -11,9 +11,20 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4 
-        
-      - name: Run entrypoint.sh
-        run: |
-         bash entrypoint.sh owner="samansupriadi" repo="crm-ops" github_token="${{ vars.REPO_TOKEN }}" workflow_file_name="blank.yaml"
+      - uses: lasith-kg/dispatch-workflow@v1
+        id: repository-dispatch
+        name: 'Dispatch Workflow using repository_dispatch Method'
+        with:
+          dispatch-method: repository_dispatch
+          repo: repository-name
+          owner: repository-owner
+          event-type: deploy # Event To Trigger From Workflow
+          token: ${{ secrets.TOKEN }} # GitHub Token With Relevant Permissions
+          workflow-inputs: |
+            {
+              "string-type": "placeholder",
+              "nested": {                    // Supports Nesting
+                "number-type": 1,            // Supports Native 'Number' types
+                "boolean-type": true         // Supports Native 'Boolean' types
+              }
+            }
