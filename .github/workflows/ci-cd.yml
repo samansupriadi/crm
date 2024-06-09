@@ -156,7 +156,7 @@ jobs:
         run: |
           workflow_id=$(curl -s -H "Accept: application/vnd.github.v3+json" \
             -H "Authorization: token ${{ secrets.REPO_ACCESS_TOKEN }}" \
-            https://api.github.com/repos/${{ vars.REPO_OPS }}/actions/workflows/${{ vars.FILE_TO_TRIGER1 }} | jq -r '.id')
+            https://api.github.com/repos/${{ vars.REPO_OPS }}/actions/workflows/${{ vars.FILE_TO_TRIGER }} | jq -r '.id')
 
           if ! [[ "$workflow_id" =~ ^[0-9]+$ ]]; then
             echo "error: Cant get workflow id in the OPS repo" >&2
