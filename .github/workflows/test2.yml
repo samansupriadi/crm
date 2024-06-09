@@ -15,5 +15,5 @@ jobs:
         owner: samansupriadi
         repo: crm-ops
         github_token: ${{ vars.REPO_TOKEN }}
+        comment_downstream_url: ${{ github.event.pull_request.comments_url }}
         workflow_file_name: test.yml
-        comment_downstream_url: 'mantappppp'
