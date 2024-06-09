@@ -156,8 +156,10 @@ jobs:
         run: |
           workflow_id=$(curl -s -H "Accept: application/vnd.github.v3+json" \
             -H "Authorization: token ${{ secrets.REPO_ACCESS_TOKEN }}" \
-            https://api.github.com/repos/${{ vars.REPO_OPS }}/actions/workflows/${{ vars.FILE_TO_TRIGER }} | jq -r '.id')
-            
+            https://api.github.com/repos/${{ vars.REPO_OPS }}/actions/workflows/${{ vars.FILE_TO_TRIGER1 }} | jq -r '.id')
+          
+          if [ -z "$workflow_id" ]; then echo "Cant get workflow id in the repo ops"; exit 1 fi
+
           echo "$workflow_id"
           echo "workflow_id=$workflow_id" >> "$GITHUB_OUTPUT"
          
