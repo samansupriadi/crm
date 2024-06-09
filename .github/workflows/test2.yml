@@ -16,10 +16,10 @@ jobs:
         name: 'Dispatch Workflow using repository_dispatch Method'
         with:
           dispatch-method: repository_dispatch
-          repo: repository-name
-          owner: repository-owner
+          repo: crm-ops
+          owner: samansupriadi
           event-type: deploy # Event To Trigger From Workflow
-          token: ${{ secrets.TOKEN }} # GitHub Token With Relevant Permissions
+          token: ${{ vars.REPO_TOKEN }} # GitHub Token With Relevant Permissions
           workflow-inputs: |
             {
               "string-type": "placeholder",
