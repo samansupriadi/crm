@@ -1,16 +1,25 @@
 #!/usr/bin/env bash
 set -e
 
+# Function to display usage information
 usage_docs() {
-  echo ""
-  echo "You can use this Github Action with:"
-  echo "- uses: convictional/trigger-workflow-and-wait"
-  echo "  with:"
-  echo "    owner: keithconvictional"
-  echo "    repo: myrepo"
-  echo "    github_token: \${{ secrets.GITHUB_PERSONAL_ACCESS_TOKEN }}"
-  echo "    workflow_file_name: main.yaml"
+  echo "Usage: $0 owner=<owner> repo=<repo> github_token=<github_token> workflow_file_name=<workflow_file_name>"
 }
+
+
+# Parse command line options
+for arg in "$@"; do
+  if [[ "$arg" =~ owner=([^[:space:]]+) ]]; then
+    OWNER="${BASH_REMATCH[1]}"
+  elif [[ "$arg" =~ repo=([^[:space:]]+) ]]; then
+    REPO="${BASH_REMATCH[1]}"
+  elif [[ "$arg" =~ github_token=([^[:space:]]+) ]]; then
+    GITHUB_TOKEN="${BASH_REMATCH[1]}"
+  elif [[ "$arg" =~ workflow_file_name=([^[:space:]]+) ]]; then
+    WORKFLOW_FILE_NAME="${BASH_REMATCH[1]}"
+  fi
+done
+
 GITHUB_API_URL="${API_URL:-https://api.github.com}"
 GITHUB_SERVER_URL="${SERVER_URL:-https://github.com}"
 
@@ -39,35 +48,35 @@ validate_args() {
     wait_workflow=${INPUT_WAIT_WORKFLOW}
   fi
 
-  if [ -z "${INPUT_OWNER}" ]
-  then
-    echo "Error: Owner is a required argument."
-    usage_docs
-    exit 1
-  fi
+# Check if owner is provided
+if [ -z "${OWNER}" ]; then
+  echo "Error: Owner is a required argument."
+  usage_docs
+  exit 1
+fi
 
-  if [ -z "${INPUT_REPO}" ]
-  then
-    echo "Error: Repo is a required argument."
-    usage_docs
-    exit 1
-  fi
+# Check if repo is provided
+if [ -z "${REPO}" ]; then
+  echo "Error: Repo is a required argument."
+  usage_docs
+  exit 1
+fi
 
-  if [ -z "${INPUT_GITHUB_TOKEN}" ]
-  then
-    echo "Error: Github token is required. You can head over settings and"
-    echo "under developer, you can create a personal access tokens. The"
-    echo "token requires repo access."
-    usage_docs
-    exit 1
-  fi
+# Check if github token is provided
+if [ -z "${GITHUB_TOKEN}" ]; then
+  echo "Error: Github token is required. You can head over settings and"
+  echo "under developer, you can create a personal access tokens. The"
+  echo "token requires repo access."
+  usage_docs
+  exit 1
+fi
 
-  if [ -z "${INPUT_WORKFLOW_FILE_NAME}" ]
-  then
-    echo "Error: Workflow File Name is required"
-    usage_docs
-    exit 1
-  fi
+# Check if workflow file name is provided
+if [ -z "${WORKFLOW_FILE_NAME}" ]; then
+  echo "Error: Workflow File Name is required"
+  usage_docs
+  exit 1
+fi
 
   client_payload=$(echo '{}' | jq -c)
   if [ "${INPUT_CLIENT_PAYLOAD}" ]
