@@ -141,7 +141,7 @@ jobs:
   #job ini akan selalu di jalankan ketika ada event PR dan merge ke branch yg telah di tentukan
   Deploy:
     #needs: ["set_target_env", "Build-and-publish-image"]
-    needs: ["set_target_env"]
+    needs: ["set_target_env" ]
     if: needs.set_target_env.outputs.status != '0'
     name: Deploy apps
     environment:
@@ -168,9 +168,8 @@ jobs:
           sleep 30 # Wait a bit for the workflow to start, cz sometimes the workflow in the downsteam not start immediately
           run_id=$(curl -X GET "https://api.github.com/repos/${{ vars.REPO_OPS }}/actions/workflows/${{ vars.FILE_TO_TRIGER }}/runs" \
               -H 'Accept: application/vnd.github.antiope-preview+json' \
-              -H "Authorization: token ${{ secrets.REPO_ACCESS_TOKEN }}" | jq '[.workflow_runs[]] | first')
+              -H "Authorization: token ${{ secrets.REPO_ACCESS_TOKEN }}" | jq '[.workflow_runs[]] | first' | jq -r  '.id')
           echo "$run_id"
-          # echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
     
           
   
