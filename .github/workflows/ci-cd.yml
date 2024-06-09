@@ -156,7 +156,8 @@ jobs:
         run: |
           workflow_id=$(curl -s -H "Accept: application/vnd.github.v3+json" \
             -H "Authorization: token ${{ secrets.REPO_ACCESS_TOKEN }}" \
-            https://api.github.com/repos/${{ github.repository_owner }}/${{ vars.REPO_OPS }}/actions/workflows/${{ vars.FILE_TO_TRIGER }} | jq -r '.id')
+            https://api.github.com/repos/${{ vars.REPO_OPS }}/actions/workflows/${{ vars.FILE_TO_TRIGER }} | jq -r '.id')
+            
           echo "$workflow_id"
           echo "workflow_id=$workflow_id" >> "$GITHUB_OUTPUT"
          
