@@ -156,10 +156,11 @@ jobs:
         run: |
           workflow_id=$(curl -s -H "Accept: application/vnd.github.v3+json" \
             -H "Authorization: token ${{ secrets.REPO_ACCESS_TOKEN }}" \
-            https://api.github.com/repos/${{ github.event.repository.name }}/${{ vars.REPO_OPS }}/actions/workflows/${{ vars.WORKFLOWS_FILE }} | jq -r '.id')
-          
+            https://api.github.com/repos/samansupriadi/crm-ops/actions/workflows/blank.yml | jq -r '.id')
+            
+           echo "$workflow_id"
           echo "workflow_id=$workflow_id" >> "$GITHUB_OUTPUT"
-          echo "$workflow_id"
+         
 
       # - name: Triger to OPS repo ${{ vars.REPO_OPS }}
       #   id: trigger
