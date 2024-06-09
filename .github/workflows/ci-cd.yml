@@ -156,18 +156,22 @@ jobs:
           repository: ${{ vars.REPO_OPS }}
           event-type: ${{ needs.set_target_env.outputs.env_app }}
           client-payload: '{
-                              "environment": "${{ needs.set_target_env.outputs.env_app }}",
-                              "version": "${{ needs.set_target_env.outputs.versions_app }}",
-                              "APP_NAME": "${{ github.event.repository.name }}-services" 
+                              "environment":  "${{ needs.set_target_env.outputs.env_app }}",
+                              "version":      "${{ needs.set_target_env.outputs.versions_app }}",
+                              "APP_NAME":     "${{ github.event.repository.name }}-services" 
                           }'          
   
-      # - name: Cek Status Deploying
-      #   uses: convictional/trigger-workflow-and-wait@v1.6.1
-      #   with:
-      #     owner: samansupriadi
-      #     repo: crm-ops
-      #     github_token: ${{ secrets.REPO_ACCESS_TOKEN }}
-      #     workflow_file_name: blank.yml
+      - name: Get run_id for the triggered workflow
+        id: get_run_id
+        run: |
+          sleep 30 # Wait a bit for the workflow to start, cz sometimes the workflow in the downsteam not start immediately
+          run_id=$(curl -X GET "https://api.github.com/repos/${{ vars.REPO_OPS }}/actions/workflows/${{ vars.FILE_TO_TRIGER }}/runs" \
+              -H 'Accept: application/vnd.github.antiope-preview+json' \
+              -H "Authorization: token ${{ secrets.REPO_ACCESS_TOKEN }}" | jq '[.workflow_runs[]] | first')
+          
+          echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
+    
+          
   
   # #job ini akan selalu di jalankan ketika ada event PR dan merge ke branch yg telah di tentukan
   # zap_scan:
