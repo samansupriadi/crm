@@ -150,22 +150,33 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-      - name: Triger to OPS repo ${{ vars.REPO_OPS }}
-        id: trigger
+
+      - name: Get workflow ID
+        id: get_workflow_id
         run: |
-          curl -H "Authorization: token ${{ secrets.REPO_ACCESS_TOKEN }}" \
-            -H 'Accept: application/vnd.github.everest-preview+json' \
-            "https://api.github.com/repos/samansupriadi/crm-ops/dispatches" \
-            -d '{
-                  "event_type": "${{ needs.set_target_env.outputs.env_app }}",
-                  "client_payload":
-                     {
-                        "environment":  " ${{ needs.set_target_env.outputs.env_app }}",
-                        "APP_NAME":     "${{ github.event.repository.name }}-services", 
-                        "version":      "${{ needs.set_target_env.outputs.versions_app }}",
-                      }
-                }'
-                  
+          workflow_id=$(curl -s -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token ${{ secrets.REPO_ACCESS_TOKEN }}" \
+            https://api.github.com/repos/${{ github.event.repository.name }}/${{ vars.REPO_OPS }}/actions/workflows/${{ vars.WORKFLOWS_FILE }} | jq -r '.id')
+          
+          echo "workflow_id=$workflow_id" >> "$GITHUB_OUTPUT"
+          echo "$workflow_id"
+
+      # - name: Triger to OPS repo ${{ vars.REPO_OPS }}
+      #   id: trigger
+      #   run: |
+      #     curl -H "Authorization: token ${{ secrets.REPO_ACCESS_TOKEN }}" \
+      #       -H 'Accept: application/vnd.github.everest-preview+json' \
+      #       "https://api.github.com/repos/samansupriadi/crm-ops/dispatches" \
+      #       -d '{
+      #             "event_type": "${{ needs.set_target_env.outputs.env_app }}",
+      #             "client_payload":
+      #                {
+      #                   "environment":  " ${{ needs.set_target_env.outputs.env_app }}",
+      #                   "APP_NAME":     "${{ github.event.repository.name }}-services", 
+      #                   "version":      "${{ needs.set_target_env.outputs.versions_app }}",
+      #                 }
+      #           }'
+
   # #job ini akan selalu di jalankan ketika ada event PR dan merge ke branch yg telah di tentukan
   # zap_scan:
   #   name: Scan the web application
