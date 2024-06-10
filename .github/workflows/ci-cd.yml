@@ -215,7 +215,7 @@ jobs:
 
           conclusion=$(echo "$response" | jq -r '.conclusion')
            if [ "$conclusion" != "success" ]; then
-            echo "Workflow Error Detail can be found here $html_url"
+            echo "::error::Workflow Error: $conclusion. Detail can be found here: $html_url"
             exit 1
           fi
           echo "status : $workflow_status $conclusion $html_url"    
