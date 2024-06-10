@@ -209,12 +209,13 @@ jobs:
             echo "Workflow did not complete within the expected time"
             exit 1
           fi
-          echo "status : $workflow_status" 
 
-          # conclusion=$(echo "$response" | jq -r '.conclusion')
-          # echo "::set-output name=conclusion::$conclusion"
-          # html_url=$(echo "$response" | jq -r '.html_url')
-          # echo "::set-output name=html_url::$html_url"
+          conclusion=$(echo "$response" | jq -r '.conclusion')
+          echo "conclusion=$conclusion" >> "$GITHUB_OUTPUT"
+          html_url=$(echo "$response" | jq -r '.html_url')
+          echo "html_url=$html_url" >> "$GITHUB_OUTPUT"
+
+          echo "status : $workflow_status $conclusion $html_url"
 
     
           
