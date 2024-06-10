@@ -212,23 +212,21 @@ jobs:
             exit 1
           fi
 
-          conclusion=$(echo "$response" | jq -r '.conclusion')
-           if [ "$conclusion" != "success" ]; then
-            echo "Workflow did not success"
-            exit 1
-          fi
-
           echo "conclusion=$conclusion" >> "$GITHUB_OUTPUT"
           html_url=$(echo "$response" | jq -r '.html_url')
           echo "html_url=$html_url" >> "$GITHUB_OUTPUT"
 
+          conclusion=$(echo "$response" | jq -r '.conclusion')
+           if [ "$conclusion" != "success" ]; then
+            echo "Workflow Error Detail can be found here $html_url"
+            exit 1
+          fi
           echo "status : $workflow_status $conclusion $html_url"    
   
   #job ini akan selalu di jalankan ketika ada event PR dan merge ke branch yg telah di tentukan
   zap_scan:
     name: Scan the web application
     needs: Deploy
-    #if: needs.Deploy.outputs.conclusion
     if: ${{ success() }}
     runs-on: ubuntu-latest
     permissions:
