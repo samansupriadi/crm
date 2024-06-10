@@ -171,6 +171,7 @@ jobs:
               -H "Authorization: token ${{ secrets.REPO_ACCESS_TOKEN }}" | jq '[.workflow_runs[]] | first')
            echo "$response" > response.json
            run_id=$(jq -r '.id' response.json)
+           echo $run_id
            echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
 
       - name: Wait and check workflow status
