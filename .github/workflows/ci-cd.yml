@@ -150,7 +150,7 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-      - name: Repository Dispatch
+      - name: Triger to Repo OPS
         uses: peter-evans/repository-dispatch@v3
         with: 
           token: ${{ secrets.REPO_ACCESS_TOKEN }}
@@ -165,11 +165,24 @@ jobs:
       - name: Get run_id for the triggered workflow
         id: get_run_id
         run: |
-          sleep 30 # Wait a bit for the workflow to start, cz sometimes the workflow in the downsteam not start immediately
-          run_id=$(curl -X GET "https://api.github.com/repos/${{ vars.REPO_OPS }}/actions/workflows/${{ vars.FILE_TO_TRIGER }}/runs" \
+          sleep 60 # Wait a bit for the workflow to start, cz sometimes the workflow in the downsteam not start immediately          
+          response=$(curl -X GET "https://api.github.com/repos/${{ vars.REPO_OPS }}/actions/workflows/${{ vars.FILE_TO_TRIGER }}/runs" \
               -H 'Accept: application/vnd.github.antiope-preview+json' \
-              -H "Authorization: token ${{ secrets.REPO_ACCESS_TOKEN }}" | jq '[.workflow_runs[]] | first' | jq -r  '.id')
-          echo "$run_id"
+              -H "Authorization: token ${{ secrets.REPO_ACCESS_TOKEN }}" | jq '[.workflow_runs[]] | first')
+           echo "$response" > response.json
+           run_id=$(jq -r '.id' response.json)
+           echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
+
+      - name: Wait and check workflow status
+        id: check_status
+        run: |
+          attempt_counter=0
+          max_attempts=20
+          sleep_interval=30
+          workflow_status="in_progress"
+          run_id=${{ steps.get_run_id.outputs.run_id }}
+          echo $run_id
+
     
           
   
