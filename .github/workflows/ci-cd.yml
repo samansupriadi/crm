@@ -213,6 +213,11 @@ jobs:
           fi
 
           conclusion=$(echo "$response" | jq -r '.conclusion')
+           if [ "$conclusion" != "success" ]; then
+            echo "Workflow did not success"
+            exit 1
+          fi
+
           echo "conclusion=$conclusion" >> "$GITHUB_OUTPUT"
           html_url=$(echo "$response" | jq -r '.html_url')
           echo "html_url=$html_url" >> "$GITHUB_OUTPUT"
