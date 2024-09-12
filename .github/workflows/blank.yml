@@ -16,5 +16,7 @@ jobs:
 
       - uses: actions/checkout@v4
         if: startsWith(github.event.ref, 'refs/tags')
+          run:|
+            echo "deploy version is $GITHUB_REF_NAME"
 
  
