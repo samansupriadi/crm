@@ -8,9 +8,8 @@ jobs:
   job1:
     runs-on: ubuntu-latest
     steps:
-      - name: The job has succeeded
-        if: startsWith(github.event.ref, 'refs/tags')
       - name: tag version
+        if: startsWith(github.event.ref, 'refs/tags')
         run: |
             echo DEPLOY ON VERSION :  $GITHUB_REF_NAME
  
