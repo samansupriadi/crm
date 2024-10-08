@@ -1,0 +1,13 @@
+name: "Test"
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy-function:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+
+      # Checkout ourselves
+      - name: Git checkout
+        uses: actions/checkout@v4
