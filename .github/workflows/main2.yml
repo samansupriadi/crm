@@ -1,4 +1,4 @@
-name: Test workflow_call
+name: Test workflow_call 2
 
 on:
   workflow_call:
