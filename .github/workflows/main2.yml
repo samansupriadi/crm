@@ -1,36 +1,19 @@
 name: Test workflow_dispatch
 
 on:
-  push:
-  workflow_dispatch:
+  workflow_call:
     inputs:
-      logLevel:
-        description: 'Log level'
-        required: true
-        default: 'warning'
-        type: choice
-        options:
-        - info
-        - warning
-        - debug
-      tags:
-        description: 'Test scenario tags'
+      username:
+        description: 'A username passed from the caller workflow'
+        default: 'john-doe'
         required: false
-        type: boolean
-      environment:
-        description: 'Environment to run tests against'
-        type: environment
-        required: true
+        type: string
 
 jobs:
-  log-the-inputs:
+  print-username:
     runs-on: ubuntu-latest
+
     steps:
-      - run: |
-          echo "Log level: $LEVEL"
-          echo "Tags: $TAGS"
-          echo "Environment: $ENVIRONMENT"
-        env:
-          LEVEL: ${{ inputs.logLevel }}
-          TAGS: ${{ inputs.tags }}
-          ENVIRONMENT: ${{ inputs.environment }}
+      - name: Print the input name to STDOUT
+        run: echo The username is ${{ inputs.username }}
+
