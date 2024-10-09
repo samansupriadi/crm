@@ -24,6 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
+          echo "${{ github.ref_name }}"
           echo "Log level: $LEVEL"
           echo "Tags: $TAGS"
           echo "Environment: $ENVIRONMENT"
