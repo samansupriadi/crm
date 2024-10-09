@@ -1,0 +1,21 @@
+name: Trigger by tag
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+jobs:
+  job1:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Tag Version
+        if: startsWith(github.event.ref, 'refs/tags')
+        id: get_tag
+        run: |
+          echo "TAG_VERSION=$GITHUB_REF_NAME" >> "$GITHUB_OUTPUT"
+          
+      - name: display version
+        if: startsWith(github.event.ref, 'refs/tags')
+        run: |
+            echo DEPLOY ON VERSION : ${{steps.get_tag.outputs.TAG_VERSION}}
+ 
