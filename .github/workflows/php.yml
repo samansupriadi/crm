@@ -1,0 +1,17 @@
+name: triger jenkins
+
+on:
+  push:
+  workflow_dispatch:
+
+
+jobs:
+  Triger-deploy:
+    name: Triger Deploy 
+    runs-on: ubuntu
+    steps:
+      - run: |
+          # sleep 120
+          echo "Tag name from github.ref_name: ${{ github.ref_name }}"
+          echo "curl -X POST -L --user ${{ secrets.JENKINS_USERNAME }}:${{ secrets.JENKINS_TOKEN }} \
+          ${{ vars.JENKINS_HOST }}${{ vars.JENKINS_JOB }}/${{ github.ref_name }}/build"
