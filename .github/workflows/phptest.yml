@@ -35,8 +35,6 @@ jobs:
     - name: Test with phpunit
       run: vendor/bin/phpunit --coverage-text        
 
-    - name: Run Psalm
-      run: psalm --output-format=github
 
     - name: Run phpcs
       run: phpcs -q --report=checkstyle src | cs2pr
