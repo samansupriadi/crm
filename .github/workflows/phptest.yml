@@ -32,6 +32,7 @@ jobs:
       with:
         php-version: '8.1'
         coverage: xdebug
+        tools: php-cs-fixer, phpunit
   
 
 
