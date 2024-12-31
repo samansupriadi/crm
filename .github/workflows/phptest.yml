@@ -14,17 +14,16 @@ jobs:
 
     runs-on: ubuntu-latest
     
-    defaults:
-      run:
-        working-directory: ./src
 
     steps:
     - uses: actions/checkout@v4
 
     - name: Validate composer.json and composer.lock
-      run: composer validate --strict
+      working-directory: ./src
+      run: composer validate --stric
 
     - name: Install dependencies
+      working-directory: ./src    
       run: composer install --prefer-dist --no-progress
 
     - name: Setup PHP with Xdebug
