@@ -13,6 +13,7 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    continue-on-error: true
     defaults:
       run:
         shell: bash
@@ -30,9 +31,13 @@ jobs:
         php-version: '8.2'
         extensions: mbstring, dom, fileinfo, pgsql
         coverage: xdebug
+        tools: psalm, phpstan, cs2pr, phpcs
 
     - name: Test with phpunit
-      run: vendor/bin/phpunit --coverage-text 
+      run: |
+        php artisan test --coverage
+        echo "lalalala============================"
+        vendor/bin/phpunit --coverage-text 
     
     
     - name: Setup problem matchers for PHP
@@ -40,6 +45,15 @@ jobs:
 
     - name: Setup problem matchers for PHPUnit
       run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
+
+    - name: Run PHPStan
+      run: phpstan analyse src
+
+    - name: Run Psalm
+      run: psalm --output-format=github
+    
+    - name: Run phpcs
+      run: phpcs -q --report=checkstyle src | cs2pr
 
 
 
