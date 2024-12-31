@@ -33,6 +33,9 @@ jobs:
         php-version: '8.1'
         coverage: xdebug
         tools: php-cs-fixer, phpunit
+        
+    - name: Run psalm
+      run: ./vendor/bin/psalm.phar --output-format=github
   
 
 
