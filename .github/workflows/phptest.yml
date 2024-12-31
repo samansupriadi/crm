@@ -33,6 +33,10 @@ jobs:
 
     - name: Test with phpunit
       run: vendor/bin/phpunit --coverage-text 
+    
+    
+    - name: Setup problem matchers for PHP
+      run: echo "::add-matcher::${{ runner.tool_cache }}/php.json"
 
 
 
