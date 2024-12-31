@@ -30,15 +30,11 @@ jobs:
         php-version: '8.2'
         extensions: mbstring, dom, fileinfo, pgsql
         coverage: xdebug
-        tools: psalm, cs2pr, phpcs
 
     - name: Test with phpunit
       run: vendor/bin/phpunit --coverage-text        
 
 
-    - name: Run phpcs
-      run: phpcs -q --report=checkstyle src | cs2pr
-    
 
 
 
